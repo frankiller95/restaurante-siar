@@ -28,6 +28,7 @@ erDiagram
         string contrasena_cifrada
         enum estado
         datetime fecha_creacion
+        datetime fecha_actualizacion
         int id_rol FK
     }
 
@@ -51,19 +52,20 @@ erDiagram
     }
 
     SESIONES {
-        string token_sesion PK
-        datetime fecha_inicio
-        datetime fecha_expiracion
-        boolean activa
-        int id_usuario FK
+        int id PK
+        string tokenable_type
+        int tokenable_id FK "id_usuario"
+        string name
+        string token "hash SHA-256"
+        datetime last_used_at
+        datetime expires_at "fecha de expiración"
+        datetime created_at "fecha de inicio"
     }
 
     SOLICITUDES_RECUPERACION {
-        string token_recuperacion PK
-        datetime fecha_creacion
-        datetime fecha_expiracion
-        boolean usado
-        int id_usuario FK
+        string email PK "correo del usuario"
+        string token "hash bcrypt"
+        datetime created_at "vence a los 60 min"
     }
 
     BITACORA_AUDITORIA {
@@ -115,3 +117,11 @@ erDiagram
         int id_mesa FK
     }
 ```
+
+## Notas de implementación (Módulo 1)
+
+- Las migraciones están en `backend/database/migrations` y usan los mismos nombres de tablas y columnas de este modelo.
+- **SESIONES**: cada fila es un token de Laravel Sanctum (modelo `App\Models\Sesion`). Una sesión está activa mientras su fila exista y `expires_at` no haya pasado (8 horas por defecto). Revocar una sesión es borrar la fila, por eso no se necesita la columna `activa`.
+- **SOLICITUDES_RECUPERACION**: la usa el sistema de recuperación de contraseñas de Laravel. El token se guarda cifrado, vence a los 60 minutos y se borra al usarse, así que es de un solo uso (reemplaza a la columna `usado`).
+- **BITACORA_AUDITORIA**: si un usuario se borra físicamente, sus registros se conservan con `id_usuario` en `NULL`.
+- **USUARIOS.estado**: `activo` o `inactivo`. La eliminación lógica (CU-03) pone el estado en `inactivo`.

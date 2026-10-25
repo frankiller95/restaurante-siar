@@ -9,7 +9,7 @@ El sistema **SIAR** utiliza una **Arquitectura en Capas (Layered Architecture / 
 ```mermaid
 graph TD
     subgraph Capa1 [Capa 1: Presentación / Cliente]
-        UI[Cliente Web / Móvil - Angular]
+        UI[Cliente Web - Vue 3 + Quasar]
     end
 
     subgraph Capa2 [Capa 2: Controladores / API REST]
@@ -45,7 +45,7 @@ graph TD
 ```
 
 ### Descripción de Capas:
-1. **Capa de Presentación (Frontend):** Desarrollada con un framework cliente (ej. Angular), encargada de la interfaz gráfica e interacción con el usuario (administradores, cajeros, clientes y meseros).
+1. **Capa de Presentación (Frontend):** Desarrollada con Vue 3 y Quasar Framework (SPA responsiva), encargada de la interfaz gráfica e interacción con el usuario (administradores, cajeros, clientes y meseros).
 2. **Capa de Controladores / Endpoints (API REST):** Recibe las solicitudes HTTP/HTTPS desde el cliente, valida los DTOs (Data Transfer Objects) de entrada y expone respuestas estructuradas en JSON.
 3. **Capa de Negocio / Servicios (Backend Services):** Contiene la lógica del negocio, validaciones de reglas del restaurante (por ejemplo, disponibilidad de mesas, control de roles, cambio de precios) y coordinación de operaciones.
 4. **Capa de Persistencia / Acceso a Datos:** Gestiona la comunicación con la base de datos relacional mediante un ORM/Mapeador, garantizando la integridad de datos y las transacciones.
@@ -130,3 +130,55 @@ stateDiagram-v2
     Libre --> Mantenimiento : Inhabilitar
     Mantenimiento --> Libre : Habilitar
 ```
+
+---
+
+## 3. Tecnologías
+
+| Capa | Tecnología |
+|---|---|
+| Presentación | Vue 3 + Quasar Framework 2 (Quasar CLI con Vite), Pinia, Axios |
+| Controladores / API REST | Laravel 12, autenticación por tokens con Laravel Sanctum |
+| Lógica de negocio | Servicios de Laravel (`app/Services`) |
+| Persistencia | Repositorios sobre Eloquent ORM, MySQL / MariaDB |
+
+---
+
+## 4. Implementación de los patrones (Módulo 1)
+
+| Patrón | Dónde está en el código | Qué hace |
+|---|---|---|
+| **Observer** | `app/Events/EventoAuditable.php` (evento) y `app/Listeners/AuditoriaObserver.php` (observador) | Los servicios publican `EventoAuditable` (inicio de sesión, registro, edición o eliminación de usuarios, cambios de roles). `AuditoriaObserver` lo escucha y lo guarda en `bitacora_auditoria` sin que los servicios sepan de la bitácora. |
+| **Repository** | Interfaces en `app/Contracts/Repositories`, implementaciones en `app/Repositories/Eloquent` | `UsuarioService`, `RolService` y `AuthService` dependen de interfaces como `UsuarioRepositoryInterface`. Las pruebas unitarias (`tests/Unit/UsuarioServiceTest.php`) reemplazan el repositorio por un doble de prueba sin tocar la base de datos. |
+| **DTO** | Entrada: `app/DTOs/UsuarioDTO.php`, `app/DTOs/RolDTO.php`. Salida: `app/Http/Resources/*Resource.php` | La entrada validada se convierte en un DTO que normaliza los datos. La salida usa API Resources, que nunca exponen `contrasena_cifrada` ni los tokens. |
+| **Singleton** | `app/Providers/RepositoryServiceProvider.php` | Los repositorios y el `ServicioCorreo` se registran con `$singletons` en el contenedor de Laravel: una sola instancia compartida por todos los servicios. La conexión a la base de datos también es un singleton del framework (`db`). |
+| **State** | Módulo 3 (Mesas) | Pendiente: se aplicará a los estados de las mesas. |
+
+### Flujo de una petición (ejemplo: CU-01 Registrar usuario)
+
+```mermaid
+sequenceDiagram
+    participant UI as Quasar (UsuarioFormDialog)
+    participant C as UsuarioController
+    participant R as GuardarUsuarioRequest
+    participant S as UsuarioService
+    participant Repo as UsuarioRepository
+    participant Mail as ServicioCorreo
+    participant Obs as AuditoriaObserver
+
+    UI->>C: POST /api/usuarios (JSON)
+    C->>R: valida formato y campos obligatorios
+    C->>S: registrar(UsuarioDTO)
+    S->>Repo: existeCorreo / existeDocumento
+    S->>Repo: crear(datos + contraseña cifrada)
+    S-->>Obs: EventoAuditable(usuario_registrado)
+    S->>Mail: enviarCredenciales()
+    S-->>C: usuario + correo_enviado
+    C-->>UI: 201 UsuarioResource
+```
+
+### Control de acceso (RNF05)
+
+- Cada rol tiene permisos (`rol_permisos`). El middleware `permiso:<codigo>` (`app/Http/Middleware/VerificarPermiso.php`) protege las rutas.
+- El frontend arma el menú con los permisos que devuelve `GET /api/auth/perfil` y el router bloquea las rutas sin permiso.
+- Al cambiar el rol o el estado de un usuario, o los permisos de un rol, se revocan las sesiones afectadas para que vuelvan a ingresar con sus permisos vigentes.
