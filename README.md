@@ -111,6 +111,7 @@ Todas las rutas, salvo login y recuperación, requieren el encabezado `Authoriza
 ## 📂 Documentación
 
 - **Documento de Inicio**: [`Documento de Inicio — SIAR.pdf`](docs/Documento%20de%20Inicio%20%E2%80%94%20SIAR.pdf)
+- **Despliegue en Hostinger** (https://siar.frajarele.dev): [`DESPLIEGUE.md`](docs/DESPLIEGUE.md)
 - **Arquitectura y patrones**: [`ARQUITECTURA.md`](docs/ARQUITECTURA.md)
 - **Modelo entidad-relación**: [`MODELO_ER.md`](docs/MODELO_ER.md)
 - **Diagrama de clases (Módulo 1)**: [`Diagrama_de_clases.md`](docs/Diagrama_de_clases.md)

@@ -1,0 +1,20 @@
+# Va en public_html/ del subdominio, junto al index.html del frontend.
+# Si publicas la app en una subcarpeta (SIAR_PUBLIC_PATH), cambia también RewriteBase.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Fuerza HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # La API de Laravel (carpeta backend/) tiene su propio .htaccess.
+  RewriteRule ^backend(/.*)?$ - [L]
+
+  # La app usa rutas "history" (/usuarios, /restablecer-contrasena...).
+  # Si el archivo pedido no existe, se entrega index.html y Vue Router muestra la página.
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
+</IfModule>

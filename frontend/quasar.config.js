@@ -3,7 +3,7 @@
 
 import { defineConfig } from '#q-app'
 
-export default defineConfig(() => {
+export default defineConfig((ctx) => {
   return {
     // Archivos de arranque (src/boot)
     boot: ['axios'],
@@ -18,6 +18,10 @@ export default defineConfig(() => {
       // 'history' para que el enlace de recuperación de contraseña
       // (/restablecer-contrasena?token=...) funcione sin "#".
       vueRouterMode: 'history',
+
+      // En producción la app vive en la raíz de https://siar.frajarele.dev/.
+      // Para publicarla en una subcarpeta, compila con SIAR_PUBLIC_PATH=/carpeta/.
+      publicPath: ctx.prod ? (process.env.SIAR_PUBLIC_PATH ?? '/') : '/',
     },
 
     devServer: {
