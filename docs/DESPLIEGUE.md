@@ -82,8 +82,14 @@ cd ~/domains/siar.frajarele.dev/siar-app/backend
 ```
 
 ```bash
-composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 ```
+
+```bash
+php artisan package:discover --ansi
+```
+
+> **¿Por qué `--no-scripts`?** En Hostinger, PHP tiene desactivada la función `proc_open`, y Composer la usa para correr los scripts de Laravel al final de la instalación. Sin la opción sale el error *"The Process class relies on proc_open, which is not available on your PHP installation"*. Con `--no-scripts` se instalan las dependencias igual, y el único script necesario (`package:discover`) se corre a mano con `artisan`.
 
 ```bash
 cp .env.example .env
@@ -240,6 +246,7 @@ El script descarga los cambios, instala dependencias, aplica migraciones nuevas 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | El navegador dice que el sitio no es seguro o no carga | El SSL aún no está activo (`.dev` exige HTTPS) | Espera o actívalo en hPanel → Seguridad → SSL |
+| *"The Process class relies on proc_open..."* al hacer `composer install` | Hostinger desactiva `proc_open` | Usa `--no-scripts` y luego `php artisan package:discover --ansi` (paso 6) |
 | Error 500 en `/backend/...` | Error de Laravel | Revisa `siar-app/backend/storage/logs/laravel.log` |
 | "No application encryption key" | Falta la llave | `php artisan key:generate --force` y `php artisan optimize` |
 | "Access denied for user" | Datos de la base mal en `.env` | Revisa `DB_*`; el nombre lleva el prefijo `u123456789_` |
