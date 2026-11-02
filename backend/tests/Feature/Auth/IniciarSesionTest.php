@@ -84,6 +84,15 @@ class IniciarSesionTest extends TestCase
         $this->getJson('/api/auth/perfil')->assertUnauthorized();
     }
 
+    public function test_la_api_responde_json_aunque_el_navegador_no_lo_pida(): void
+    {
+        // Abrir la URL en el navegador (Accept: text/html) no debe intentar
+        // redirigir a una ruta "login" del backend, que no existe.
+        $this->get('/api/auth/perfil', ['Accept' => 'text/html'])
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthenticated.');
+    }
+
     public function test_cerrar_sesion_revoca_el_token(): void
     {
         $usuario = $this->crearUsuario(Rol::MESERO);

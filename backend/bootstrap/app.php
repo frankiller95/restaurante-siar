@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permiso' => VerificarPermiso::class,
         ]);
+
+        // El login está en el frontend (Quasar): la API no redirige a una ruta
+        // "login" del backend, responde 401 en JSON. Fuera de la API, va al inicio.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // La API siempre responde en JSON.
