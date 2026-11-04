@@ -28,4 +28,12 @@ enum TipoEvento: string
     case PRODUCTO_ACTUALIZADO = 'producto_actualizado';
     case PRODUCTO_ELIMINADO = 'producto_eliminado';
     case DISPONIBILIDAD_CAMBIADA = 'disponibilidad_cambiada';
+    case MESA_CREADA = 'mesa_creada';
+    case MESA_ACTUALIZADA = 'mesa_actualizada';
+    case MESA_ELIMINADA = 'mesa_eliminada';
+    case MESA_ESTADO_CAMBIADO = 'mesa_estado_cambiado';
+    case RESERVA_CREADA = 'reserva_creada';
+    case RESERVA_CANCELADA = 'reserva_cancelada';
+    case RESERVA_CUMPLIDA = 'reserva_cumplida';
+    case RESERVA_NO_ASISTIO = 'reserva_no_asistio';
 }

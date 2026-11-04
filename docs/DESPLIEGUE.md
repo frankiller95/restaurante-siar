@@ -259,6 +259,12 @@ Crea la carpeta de imágenes de productos con permiso de escritura:
 mkdir -p public/imagenes && chmod 775 public/imagenes
 ```
 
+### Al desplegar el Módulo 3 (Mesas)
+
+Solo hace falta `git pull` y `bash scripts/desplegar.sh`: crea las tablas `mesas` y `reservas`. Las mesas se crean desde la app (Mesas → Nueva mesa).
+
+Las reservas usan la zona horaria `America/Bogota`. Si el restaurante estuviera en otra zona, agrega `SIAR_ZONA_HORARIA=...` al `.env` del servidor y ejecuta `php artisan optimize`.
+
 ---
 
 ## Problemas comunes

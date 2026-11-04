@@ -111,7 +111,13 @@ const menu = [
   {
     titulo: 'Operación',
     opciones: [
-      { titulo: 'Mesas', icono: 'table_restaurant', nota: 'Próximamente', permisos: ['gestionar_mesas', 'consultar_mesas'] },
+      {
+        titulo: 'Mesas',
+        icono: 'table_restaurant',
+        to: { name: 'mesas' },
+        permisos: ['consultar_mesas', 'gestionar_mesas', 'gestionar_reservas'],
+      },
+      { titulo: 'Reservas', icono: 'event', to: { name: 'reservas' }, permisos: ['gestionar_reservas', 'gestionar_mesas'] },
     ],
   },
 ]

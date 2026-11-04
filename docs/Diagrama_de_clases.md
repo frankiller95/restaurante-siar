@@ -230,6 +230,204 @@ classDiagram
 
 ---
 
+## Módulo 3: Gestión de Mesas
+
+Requerimientos: RF12 a RF16 (casos de uso en `docs/casos de uso/Casos_de_uso_SIAR_Modulo_3_GestionMesas.pdf`). El estado de la mesa usa el **patrón State** descrito en `docs/ARQUITECTURA.md`.
+
+```mermaid
+classDiagram
+    class Mesa {
+        - int idMesa
+        - int numero
+        - int capacidad
+        - String ubicacion
+        - EstadoMesa estado
+        - bool activo
+        - DateTime fechaBaja
+        + estadoActual() ComportamientoMesa
+        + ocupar() void
+        + reservar() void
+        + liberar() void
+        + enviarAMantenimiento() void
+        + habilitar() void
+        + admitePersonas(int cantidad) bool
+    }
+
+    class EstadoMesa {
+        <<enumeration>>
+        LIBRE
+        OCUPADA
+        RESERVADA
+        MANTENIMIENTO
+        + comportamiento() ComportamientoMesa
+    }
+
+    class ComportamientoMesa {
+        <<interface>>
+        + ocupar(Mesa mesa) EstadoMesa
+        + reservar(Mesa mesa) EstadoMesa
+        + liberar(Mesa mesa) EstadoMesa
+        + enviarAMantenimiento(Mesa mesa) EstadoMesa
+        + habilitar(Mesa mesa) EstadoMesa
+    }
+
+    class EstadoBase {
+        <<abstract>>
+        + ocupar(Mesa mesa) EstadoMesa
+        + reservar(Mesa mesa) EstadoMesa
+        + liberar(Mesa mesa) EstadoMesa
+        + enviarAMantenimiento(Mesa mesa) EstadoMesa
+        + habilitar(Mesa mesa) EstadoMesa
+        # transicionInvalida(String accion) TransicionMesaException
+    }
+
+    class MesaLibre {
+        + ocupar(Mesa mesa) EstadoMesa
+        + reservar(Mesa mesa) EstadoMesa
+        + enviarAMantenimiento(Mesa mesa) EstadoMesa
+    }
+
+    class MesaReservada {
+        + ocupar(Mesa mesa) EstadoMesa
+        + liberar(Mesa mesa) EstadoMesa
+    }
+
+    class MesaOcupada {
+        + liberar(Mesa mesa) EstadoMesa
+    }
+
+    class MesaEnMantenimiento {
+        + habilitar(Mesa mesa) EstadoMesa
+    }
+
+    class Reserva {
+        - int idReserva
+        - Date fecha
+        - Time hora
+        - int cantidadPersonas
+        - EstadoReserva estado
+        - String clienteNombre
+        - String clienteTelefono
+        - String observaciones
+        + inicio() DateTime
+        + fin() DateTime
+        + estaPendiente() bool
+        + cancelar() void
+        + marcarCumplida() void
+        + marcarNoAsistio() void
+    }
+
+    class EstadoReserva {
+        <<enumeration>>
+        PENDIENTE
+        CUMPLIDA
+        CANCELADA
+        NO_ASISTIO
+    }
+
+    class Usuario {
+        <<Módulo 1>>
+        - int idUsuario
+        - String nombres
+    }
+
+    class TieneBajaLogica {
+        <<trait>>
+        + darDeBaja() void
+        + scopeActivos(Query consulta) Query
+    }
+
+    class MesaService {
+        + listar(Map filtros) List~Mesa~
+        + crear(MesaDTO datos) Mesa
+        + actualizar(Mesa mesa, MesaDTO datos) Mesa
+        + eliminar(Mesa mesa) void
+        + ocupar(Mesa mesa) Mesa
+        + liberar(Mesa mesa) Mesa
+        + enviarAMantenimiento(Mesa mesa) Mesa
+        + habilitar(Mesa mesa) Mesa
+        + disponibles(DateTime inicio, int personas) List~Mesa~
+    }
+
+    class ReservaService {
+        + listar(Map filtros) List~Reserva~
+        + reservar(ReservaDTO datos, Usuario registradaPor) Reserva
+        + cancelar(Reserva reserva) Reserva
+        + registrarLlegada(Reserva reserva) Reserva
+        + sincronizar() void
+    }
+
+    class MesaRepositoryInterface {
+        <<interface>>
+        + buscar(Map filtros) List~Mesa~
+        + existeNumero(int numero, int exceptoId) bool
+        + tienePedidosAbiertos(Mesa mesa) bool
+    }
+
+    class ReservaRepositoryInterface {
+        <<interface>>
+        + hayCruce(int idMesa, DateTime inicio, int exceptoId) bool
+        + pendientesQueEmpiezanAntesDe(DateTime limite) List~Reserva~
+        + vencidas(DateTime limite) List~Reserva~
+    }
+
+    class TransicionMesaException {
+        <<exception>>
+    }
+
+    %% Patrón State
+    Mesa "*" --> "1" EstadoMesa : estado
+    EstadoMesa ..> ComportamientoMesa : crea
+    ComportamientoMesa <|.. EstadoBase
+    EstadoBase <|-- MesaLibre
+    EstadoBase <|-- MesaReservada
+    EstadoBase <|-- MesaOcupada
+    EstadoBase <|-- MesaEnMantenimiento
+    Mesa ..> ComportamientoMesa : delega la transición
+    EstadoBase ..> TransicionMesaException : lanza
+    Mesa ..|> TieneBajaLogica : usa
+
+    %% Reservas
+    Mesa "1" --> "*" Reserva : recibe
+    Reserva "*" --> "1" EstadoReserva : estado
+    Reserva "*" --> "1" Usuario : registrada por
+
+    %% Capas
+    MesaService ..> MesaRepositoryInterface : usa (Repository)
+    ReservaService ..> ReservaRepositoryInterface : usa (Repository)
+    ReservaService ..> MesaService : reserva / libera la mesa
+```
+
+### Estados de la mesa (patrón State)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Libre
+    Libre --> Reservada : falta 1 h para una reserva
+    Libre --> Ocupada : ocupar (llega un cliente)
+    Reservada --> Ocupada : registrar llegada
+    Reservada --> Libre : reserva cancelada o no asistió
+    Ocupada --> Libre : liberar (RF16)
+    Libre --> Mantenimiento : enviar a mantenimiento
+    Mantenimiento --> Libre : habilitar
+```
+
+Cada estado es una clase (`MesaLibre`, `MesaOcupada`, `MesaReservada`, `MesaEnMantenimiento`) que solo implementa las transiciones que le corresponden. Las demás heredan de `EstadoBase`, que lanza `TransicionMesaException`. Así no hay cadenas de `if/switch` sobre el estado: por ejemplo, liberar una mesa que ya está libre falla en la clase `MesaLibre`.
+
+### Reglas de negocio del Módulo 3
+
+| RF | Regla | Dónde se aplica |
+|---|---|---|
+| RF12 Crear mesas | El número de mesa es único y la capacidad va de 1 a 30 personas. La mesa nace **Libre**. | `GuardarMesaRequest`, `MesaService.crear()` |
+| RF13 Modificar mesas | Se pueden cambiar el número, la capacidad y la ubicación en cualquier estado. La capacidad no puede quedar por debajo de una reserva pendiente. Dar de baja una mesa es una baja lógica, y solo si está libre o en mantenimiento y no tiene reservas pendientes. | `MesaService.actualizar()`, `MesaService.eliminar()` |
+| RF14 Consultar estado | Lista de mesas con su estado, la próxima reserva y un resumen por estado. Antes de consultar se sincronizan las reservas. | `MesaService.listar()`, `ReservaService.sincronizar()` |
+| RF15 Reservar mesas | La reserva la registra el personal a nombre del cliente. La fecha y hora deben ser futuras, la mesa debe tener capacidad suficiente y no estar en mantenimiento, y no puede cruzarse con otra reserva de la misma mesa (duración de 2 h). Cuando falta 1 h, la mesa pasa a **Reservada**; si el cliente no llega 20 min después de la hora, la reserva queda como **no asistió** y la mesa se libera. | `ReservaService`, `ReservaRepository.hayCruce()` |
+| RF16 Liberar mesas | Una mesa ocupada vuelve a **Libre**. No se libera si tiene pedidos abiertos (Módulo 4). | Estado `MesaOcupada`, `MesaRepository.tienePedidosAbiertos()` |
+
+> Las horas de las reservas se interpretan en la zona horaria del restaurante (`America/Bogota`, configurable en `config/siar.php`).
+
+---
+
 ## Módulo 5: Inventario
 
 Requerimientos: RF23 a RF27 y RF38 a RF40 (ver [Proyecto_de_semestre.md](Proyecto_de_semestre.md)).

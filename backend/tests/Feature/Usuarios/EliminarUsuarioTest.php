@@ -3,13 +3,11 @@
 namespace Tests\Feature\Usuarios;
 
 use App\Enums\TipoEvento;
+use App\Models\Reserva;
 use App\Models\Rol;
 use App\Models\Usuario;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /** CU-03 Eliminar usuario. */
@@ -44,15 +42,10 @@ class EliminarUsuarioTest extends TestCase
 
     public function test_con_historial_se_inactiva_y_se_conserva(): void
     {
-        // Simula la tabla de reservas del módulo 3.
-        Schema::create('reservas', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('id_usuario');
-        });
-
+        // El mesero registró una reserva (Módulo 3): tiene historial.
         $mesero = $this->crearUsuario(Rol::MESERO);
         $mesero->createToken('turno');
-        DB::table('reservas')->insert(['id_usuario' => $mesero->id_usuario]);
+        Reserva::factory()->create(['id_usuario' => $mesero->id_usuario]);
 
         $this->comoUsuario($this->admin)
             ->deleteJson("/api/usuarios/{$mesero->id_usuario}")

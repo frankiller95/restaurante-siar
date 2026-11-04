@@ -152,7 +152,7 @@ stateDiagram-v2
 | **Repository** | Interfaces en `app/Contracts/Repositories`, implementaciones en `app/Repositories/Eloquent` | `UsuarioService`, `RolService` y `AuthService` dependen de interfaces como `UsuarioRepositoryInterface`. Las pruebas unitarias (`tests/Unit/UsuarioServiceTest.php`) reemplazan el repositorio por un doble de prueba sin tocar la base de datos. |
 | **DTO** | Entrada: `app/DTOs/UsuarioDTO.php`, `app/DTOs/RolDTO.php`. Salida: `app/Http/Resources/*Resource.php` | La entrada validada se convierte en un DTO que normaliza los datos. La salida usa API Resources, que nunca exponen `contrasena_cifrada` ni los tokens. |
 | **Singleton** | `app/Providers/RepositoryServiceProvider.php` | Los repositorios y el `ServicioCorreo` se registran con `$singletons` en el contenedor de Laravel: una sola instancia compartida por todos los servicios. La conexión a la base de datos también es un singleton del framework (`db`). |
-| **State** | Módulo 3 (Mesas) | Pendiente: se aplicará a los estados de las mesas. |
+| **State** | `app/Estados/Mesa/` (`ComportamientoMesa`, `EstadoBase`, `MesaLibre`, `MesaOcupada`, `MesaReservada`, `MesaEnMantenimiento`) y `app/Models/Mesa.php` | Cada estado de la mesa es una clase que solo implementa las transiciones que admite; las demás lanzan `TransicionMesaException`. `Mesa::ocupar()`, `liberar()`, etc. delegan en el objeto del estado actual (`EstadoMesa::comportamiento()`), sin `if/switch` sobre el estado. `Mesa::accionesPermitidas()` le pregunta al estado qué acciones admite, y el frontend muestra solo esos botones. |
 
 ### Flujo de una petición (ejemplo: CU-01 Registrar usuario)
 

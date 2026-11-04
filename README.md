@@ -30,7 +30,7 @@ restaurante-siar/
 |---|---|
 | 1. Gestión de usuarios (CU-01 a CU-06) | ✅ Implementado y probado |
 | 2. Gestión de menú (CU01 a CU05) | ✅ Implementado y probado |
-| 3. Gestión de mesas | ⏳ Pendiente |
+| 3. Gestión de mesas y reservas (RF12 a RF16) | ✅ Implementado y probado |
 
 ## ⚙️ Instalación local
 
@@ -124,6 +124,23 @@ Todas las rutas, salvo login y recuperación, requieren el encabezado `Authoriza
 | PATCH | `/api/productos/{id}/disponibilidad` | CU05 Disponible / agotado | `gestionar_disponibilidad` (Cocinero y Administrador) |
 
 Si el nombre ya existe en la categoría, `POST`/`PUT` de productos responde `409` con `"codigo": "nombre_duplicado"`. Para guardarlo igual se reenvía con `confirmar_duplicado=1` (CU01 flujo 3a).
+
+## 🔌 API del Módulo 3
+
+| Método | Ruta | Requerimiento | Permiso |
+|---|---|---|---|
+| GET | `/api/mesas` | RF14 Estado de las mesas + `resumen` por estado (`?estado=`, `?ubicacion=`) | `consultar_mesas`, `gestionar_mesas` o `gestionar_reservas` |
+| GET | `/api/mesas/{id}` | RF14 Ver una mesa | igual que la anterior |
+| POST | `/api/mesas` | RF12 Crear mesa | `gestionar_mesas` |
+| PUT, DELETE | `/api/mesas/{id}` | RF13 Modificar / dar de baja (baja lógica) | `gestionar_mesas` |
+| PATCH | `/api/mesas/{id}/mantenimiento`, `/habilitar` | Enviar a mantenimiento / habilitar | `gestionar_mesas` |
+| PATCH | `/api/mesas/{id}/ocupar` | Ocupar (cliente sin reserva) | `gestionar_reservas` o `gestionar_mesas` |
+| PATCH | `/api/mesas/{id}/liberar` | RF16 Liberar mesa | `gestionar_reservas` o `gestionar_mesas` |
+| GET | `/api/mesas/disponibles?fecha=&hora=&personas=` | Mesas sin cruce para una reserva | `gestionar_reservas` o `gestionar_mesas` |
+| GET, POST | `/api/reservas` | Listar (`fecha`, `estado`, `buscar`) / RF15 Reservar | `gestionar_reservas` o `gestionar_mesas` |
+| PATCH | `/api/reservas/{id}/llegada`, `/cancelar` | Registrar llegada / cancelar | `gestionar_reservas` o `gestionar_mesas` |
+
+Las transiciones de estado inválidas (por ejemplo, liberar una mesa libre) responden `409` con `"codigo": "transicion_invalida"`. Cada mesa trae en `acciones` lo que su estado permite.
 
 ## 📂 Documentación
 

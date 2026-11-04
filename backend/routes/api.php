@@ -3,8 +3,10 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BitacoraController;
 use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\PermisoController;
 use App\Http\Controllers\Api\ProductoController;
+use App\Http\Controllers\Api\ReservaController;
 use App\Http\Controllers\Api\RolController;
 use App\Http\Controllers\Api\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -63,4 +65,36 @@ Route::middleware('auth:sanctum')->group(function () {
     // CU05: el cocinero (o el administrador) cambia la disponibilidad.
     Route::patch('productos/{producto}/disponibilidad', [ProductoController::class, 'cambiarDisponibilidad'])
         ->middleware('permiso:gestionar_disponibilidad');
+});
+
+// --- Módulo 3: gestión de mesas y reservas (RF12 a RF16) ---------------------
+Route::middleware('auth:sanctum')->group(function () {
+    // RF15: reservas y mesas disponibles (meseros, cajeros, administrador).
+    // Va antes de mesas/{mesa} para que "disponibles" no se tome como un id.
+    Route::middleware('permiso:gestionar_reservas,gestionar_mesas')->group(function () {
+        Route::get('mesas/disponibles', [MesaController::class, 'disponibles']);
+        Route::get('reservas', [ReservaController::class, 'index']);
+        Route::post('reservas', [ReservaController::class, 'store']);
+        Route::patch('reservas/{reserva}/cancelar', [ReservaController::class, 'cancelar']);
+        Route::patch('reservas/{reserva}/llegada', [ReservaController::class, 'llegada']);
+
+        // Ocupar (clientes sin reserva) y RF16 liberar.
+        Route::patch('mesas/{mesa}/ocupar', [MesaController::class, 'ocupar']);
+        Route::patch('mesas/{mesa}/liberar', [MesaController::class, 'liberar']);
+    });
+
+    // RF14: consultar el estado de las mesas.
+    Route::middleware('permiso:consultar_mesas,gestionar_mesas,gestionar_reservas')->group(function () {
+        Route::get('mesas', [MesaController::class, 'index']);
+        Route::get('mesas/{mesa}', [MesaController::class, 'show']);
+    });
+
+    // RF12 y RF13: el administrador crea, modifica y da de baja mesas.
+    Route::middleware('permiso:gestionar_mesas')->group(function () {
+        Route::post('mesas', [MesaController::class, 'store']);
+        Route::put('mesas/{mesa}', [MesaController::class, 'update']);
+        Route::delete('mesas/{mesa}', [MesaController::class, 'destroy']);
+        Route::patch('mesas/{mesa}/mantenimiento', [MesaController::class, 'mantenimiento']);
+        Route::patch('mesas/{mesa}/habilitar', [MesaController::class, 'habilitar']);
+    });
 });

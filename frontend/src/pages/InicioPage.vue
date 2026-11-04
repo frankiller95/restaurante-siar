@@ -45,7 +45,8 @@ const modulos = [
   { titulo: 'Carta del menú', descripcion: 'Platos y bebidas por categoría, con los agotados marcados.', icono: 'menu_book', to: { name: 'carta' }, permisos: ['consultar_menu', 'gestionar_menu', 'gestionar_disponibilidad'] },
   { titulo: 'Productos', descripcion: 'Crear, editar y dar de baja productos; cambiar disponibilidad.', icono: 'restaurant_menu', to: { name: 'productos' }, permisos: ['gestionar_menu', 'gestionar_disponibilidad'] },
   { titulo: 'Categorías', descripcion: 'Entradas, platos fuertes, bebidas, postres...', icono: 'category', to: { name: 'categorias' }, permisos: ['gestionar_menu'] },
-  { titulo: 'Mesas', descripcion: 'Estado de mesas y reservas.', icono: 'table_restaurant', permisos: ['gestionar_mesas', 'consultar_mesas'] },
+  { titulo: 'Mesas', descripcion: 'Plano de mesas: libres, ocupadas, reservadas y en mantenimiento.', icono: 'table_restaurant', to: { name: 'mesas' }, permisos: ['consultar_mesas', 'gestionar_mesas', 'gestionar_reservas'] },
+  { titulo: 'Reservas', descripcion: 'Registrar reservas, llegadas y cancelaciones.', icono: 'event', to: { name: 'reservas' }, permisos: ['gestionar_reservas', 'gestionar_mesas'] },
   { titulo: 'Mi perfil', descripcion: 'Tus datos y cambio de contraseña.', icono: 'person', to: { name: 'perfil' }, permisos: [] },
 ]
 

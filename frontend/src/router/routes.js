@@ -49,6 +49,20 @@ const routes = [
         component: () => import('@/pages/menu/CategoriasPage.vue'),
         meta: { permiso: 'gestionar_menu' },
       },
+
+      // Módulo 3: Gestión de Mesas
+      {
+        path: 'mesas',
+        name: 'mesas',
+        component: () => import('@/pages/mesas/MesasPage.vue'),
+        meta: { permisos: ['consultar_mesas', 'gestionar_mesas', 'gestionar_reservas'] },
+      },
+      {
+        path: 'reservas',
+        name: 'reservas',
+        component: () => import('@/pages/mesas/ReservasPage.vue'),
+        meta: { permisos: ['gestionar_reservas', 'gestionar_mesas'] },
+      },
     ],
   },
   {

@@ -44,6 +44,27 @@ return [
         'tabla_pedidos' => 'pedidos',
         'tabla_detalle' => 'detalle_pedidos',
         'estados_pendientes' => ['pendiente', 'en_preparacion'],
+        // RF16: una mesa con pedidos en estos estados no se puede liberar.
+        'estados_abiertos' => ['pendiente', 'en_preparacion', 'listo', 'entregado'],
+    ],
+
+    /*
+    | Zona horaria del restaurante: la fecha y hora de las reservas se
+    | interpretan en esta zona (la app guarda sus marcas de tiempo en UTC).
+    */
+    'zona_horaria' => env('SIAR_ZONA_HORARIA', 'America/Bogota'),
+
+    /*
+    | RF15 Reservas (en minutos):
+    | - duracion: tiempo que se aparta la mesa; dos reservas de la misma mesa
+    |   no pueden cruzarse dentro de este tiempo.
+    | - ventana: cuánto antes de la hora la mesa pasa a "Reservada".
+    | - tolerancia: cuánto se espera al cliente; después queda "No asistió".
+    */
+    'reservas' => [
+        'duracion_minutos' => (int) env('SIAR_RESERVA_DURACION', 120),
+        'ventana_minutos' => (int) env('SIAR_RESERVA_VENTANA', 60),
+        'tolerancia_minutos' => (int) env('SIAR_RESERVA_TOLERANCIA', 20),
     ],
 
     /*

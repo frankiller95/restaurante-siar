@@ -104,17 +104,27 @@ erDiagram
         int id_mesa PK
         int numero
         int capacidad
-        string estado
+        string ubicacion
+        enum estado
+        boolean activo
+        datetime fecha_creacion
+        datetime fecha_modificacion
+        datetime fecha_baja
     }
 
     RESERVAS {
         int id_reserva PK
         date fecha
-        string hora
+        time hora
         int cantidad_personas
-        string estado
+        enum estado
+        string cliente_nombre
+        string cliente_telefono
+        string observaciones
         int id_usuario FK
         int id_mesa FK
+        datetime fecha_creacion
+        datetime fecha_modificacion
     }
 ```
 
@@ -135,3 +145,11 @@ erDiagram
 - **PRODUCTOS.activo / fecha_baja**: baja lógica del CU03 (trait `TieneBajaLogica`). El producto sale de la carta, pero se conserva para el historial y RF34.
 - **PRODUCTOS.disponible**: CU05, lo cambia el Cocinero con el permiso `gestionar_disponibilidad`, que agrega la migración `2026_11_04_000003`.
 - **PRODUCTOS.fecha_creacion / fecha_modificacion** las llena Laravel automáticamente.
+
+## Notas de implementación (Módulo 3)
+
+- **MESAS.numero** es único. **MESAS.estado** es `libre`, `ocupada`, `reservada` o `mantenimiento`, y solo cambia por las transiciones del patrón State (`app/Estados/Mesa`).
+- **MESAS.ubicacion** (salón, terraza...) y **activo / fecha_baja** (baja lógica) se agregaron al modelo original. Una mesa con historial de reservas no se borra físicamente.
+- **RESERVAS.id_usuario** es el usuario del personal que registró la reserva. Los datos del cliente van en **cliente_nombre** y **cliente_telefono**, porque el sistema no tiene un rol "Cliente" (una reserva pública hecha por el cliente sería parte del módulo Reservas del tercer corte).
+- **RESERVAS.estado** es `pendiente`, `cumplida` (llegó el cliente), `cancelada` o `no_asistio` (pasó la tolerancia sin llegar).
+- **RESERVAS.fecha / hora** están en la zona horaria del restaurante (`America/Bogota`, en `config/siar.php`). Duración de la reserva: 2 h; la mesa pasa a `reservada` 1 h antes; tolerancia: 20 min. Todo es configurable con variables `SIAR_RESERVA_*` del `.env`.
