@@ -21,4 +21,11 @@ enum TipoEvento: string
     case ROL_ACTUALIZADO = 'rol_actualizado';
     case ROL_ELIMINADO = 'rol_eliminado';
     case PERMISOS_ACTUALIZADOS = 'permisos_actualizados';
+    case CATEGORIA_CREADA = 'categoria_creada';
+    case CATEGORIA_ACTUALIZADA = 'categoria_actualizada';
+    case CATEGORIA_ELIMINADA = 'categoria_eliminada';
+    case PRODUCTO_CREADO = 'producto_creado';
+    case PRODUCTO_ACTUALIZADO = 'producto_actualizado';
+    case PRODUCTO_ELIMINADO = 'producto_eliminado';
+    case DISPONIBILIDAD_CAMBIADA = 'disponibilidad_cambiada';
 }

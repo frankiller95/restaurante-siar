@@ -31,7 +31,7 @@ class RolSeeder extends Seeder
             ],
             Rol::COCINERO => [
                 'descripcion' => 'Prepara los pedidos enviados a cocina.',
-                'permisos' => [P::CONSULTAR_MENU->value, P::PREPARAR_PEDIDOS->value],
+                'permisos' => [P::CONSULTAR_MENU->value, P::GESTIONAR_DISPONIBILIDAD->value, P::PREPARAR_PEDIDOS->value],
             ],
         ];
 

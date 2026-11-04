@@ -29,7 +29,7 @@ restaurante-siar/
 | Módulo | Estado |
 |---|---|
 | 1. Gestión de usuarios (CU-01 a CU-06) | ✅ Implementado y probado |
-| 2. Gestión de menú | ⏳ Pendiente |
+| 2. Gestión de menú (CU01 a CU05) | ✅ Implementado y probado |
 | 3. Gestión de mesas | ⏳ Pendiente |
 
 ## ⚙️ Instalación local
@@ -107,6 +107,23 @@ php artisan test
 | GET | `/api/bitacora` | Bitácora de auditoría (RNF06) |
 
 Todas las rutas, salvo login y recuperación, requieren el encabezado `Authorization: Bearer <token>`. Las de usuarios, roles y bitácora requieren además el permiso `gestionar_usuarios`.
+
+## 🔌 API del Módulo 2
+
+| Método | Ruta | Caso de uso | Permiso |
+|---|---|---|---|
+| GET | `/api/menu` | Carta: categorías activas con sus productos | `consultar_menu`, `gestionar_menu` o `gestionar_disponibilidad` |
+| GET | `/api/categorias` | Listar categorías (`?solo_activas=1`) | igual que la carta |
+| POST | `/api/categorias` | CU04 Crear categoría | `gestionar_menu` |
+| PUT, DELETE | `/api/categorias/{id}` | CU04 Editar o desactivar / eliminar categoría sin productos | `gestionar_menu` |
+| GET | `/api/productos` | Listar (`buscar`, `id_categoria`, `disponible`, `estado=activos\|baja\|todos`) | igual que la carta |
+| POST | `/api/productos` | CU01 Crear producto (multipart, imagen opcional) | `gestionar_menu` |
+| PUT | `/api/productos/{id}` | CU02 Modificar producto (con imagen: `POST` + `_method=PUT`) | `gestionar_menu` |
+| DELETE | `/api/productos/{id}` | CU03 Dar de baja (baja lógica) | `gestionar_menu` |
+| PATCH | `/api/productos/{id}/categoria` | CU04 Cambiar la categoría | `gestionar_menu` |
+| PATCH | `/api/productos/{id}/disponibilidad` | CU05 Disponible / agotado | `gestionar_disponibilidad` (Cocinero y Administrador) |
+
+Si el nombre ya existe en la categoría, `POST`/`PUT` de productos responde `409` con `"codigo": "nombre_duplicado"`. Para guardarlo igual se reenvía con `confirmar_duplicado=1` (CU01 flujo 3a).
 
 ## 📂 Documentación
 

@@ -87,6 +87,149 @@ classDiagram
 
 ---
 
+## Módulo 2: Gestión de Menú
+
+Requerimientos: RF07 a RF11 (casos de uso CU01 a CU05 en `docs/casos de uso/CasoUso_Modulo2_GestionMenu.pdf`).
+
+```mermaid
+classDiagram
+    class Categoria {
+        - int idCategoria
+        - String nombre
+        - String descripcion
+        - bool activa
+        + activar() void
+        + desactivar() void
+        + tieneProductos() bool
+    }
+
+    class Producto {
+        - int idProducto
+        - String nombre
+        - String descripcion
+        - decimal precio
+        - String imagenUrl
+        - bool disponible
+        - bool activo
+        - DateTime fechaCreacion
+        - DateTime fechaModificacion
+        - DateTime fechaBaja
+        + actualizarDatos(ProductoDTO datos) void
+        + cambiarCategoria(Categoria categoria) void
+        + marcarDisponible(bool disponible) void
+        + darDeBaja() void
+        + estaEnMenu() bool
+    }
+
+    class TieneBajaLogica {
+        <<trait>>
+        + darDeBaja() void
+        + estaActivo() bool
+        + scopeActivos(Query consulta) Query
+    }
+
+    class GestionaImagenes {
+        <<trait>>
+        + guardarImagen(File archivo, String carpeta) String
+        + eliminarImagen(String ruta) void
+    }
+
+    class ProductoDTO {
+        <<DTO>>
+        + String nombre
+        + String descripcion
+        + decimal precio
+        + int idCategoria
+        + bool confirmarDuplicado
+    }
+
+    class ProductoService {
+        + listar(Map filtros) List~Producto~
+        + crear(ProductoDTO datos, File imagen) Producto
+        + actualizar(Producto producto, ProductoDTO datos, File imagen) Producto
+        + eliminar(Producto producto) void
+        + cambiarCategoria(Producto producto, Categoria categoria) Producto
+        + cambiarDisponibilidad(Producto producto, bool disponible) Producto
+        + menuDisponible() List~Categoria~
+    }
+
+    class CategoriaService {
+        + listar(bool soloActivas) List~Categoria~
+        + crear(String nombre, String descripcion) Categoria
+        + actualizar(Categoria categoria, String nombre, String descripcion, bool activa) Categoria
+        + eliminar(Categoria categoria) void
+    }
+
+    class ProductoRepositoryInterface {
+        <<interface>>
+        + buscar(Map filtros) List~Producto~
+        + existeNombreEnCategoria(String nombre, int idCategoria, int exceptoId) bool
+        + tienePedidosPendientes(Producto producto) bool
+        + crear(Map datos) Producto
+        + actualizar(Producto producto, Map datos) Producto
+    }
+
+    class CategoriaRepositoryInterface {
+        <<interface>>
+        + todas(bool soloActivas) List~Categoria~
+        + existeNombre(String nombre, int exceptoId) bool
+        + crear(Map datos) Categoria
+        + actualizar(Categoria categoria, Map datos) Categoria
+        + eliminar(Categoria categoria) void
+    }
+
+    class EventoAuditable {
+        <<event>>
+        + TipoEvento tipo
+        + String descripcion
+    }
+
+    class AuditoriaObserver {
+        <<observer>>
+        + handle(EventoAuditable evento) void
+    }
+
+    class DetallePedido {
+        <<Módulo 4>>
+        - int cantidad
+        - decimal precioUnitario
+    }
+
+    class DetalleReceta {
+        <<Módulo 5>>
+        - decimal cantidadPorPorcion
+    }
+
+    %% Relaciones del menú
+    Categoria "1" o-- "*" Producto : agrupa
+    Producto ..|> TieneBajaLogica : usa
+    ProductoService ..|> GestionaImagenes : usa
+    ProductoService ..> ProductoDTO : recibe
+    ProductoService ..> ProductoRepositoryInterface : usa (Repository)
+    ProductoService ..> CategoriaRepositoryInterface : usa (Repository)
+    CategoriaService ..> CategoriaRepositoryInterface : usa (Repository)
+    ProductoService ..> EventoAuditable : publica
+    CategoriaService ..> EventoAuditable : publica
+    AuditoriaObserver ..> EventoAuditable : escucha
+
+    %% Conexión con otros módulos
+    DetallePedido "*" --> "1" Producto : pide
+    Producto "1" *-- "*" DetalleReceta : receta
+```
+
+### Reglas de negocio del Módulo 2
+
+| Caso de uso | Regla | Dónde se aplica |
+|---|---|---|
+| CU01 Crear producto | El precio es obligatorio y no puede ser negativo. El producto queda **disponible** por defecto. | `GuardarProductoRequest`, `ProductoService.crear()` |
+| CU01 flujo 3a | Si ya existe un producto activo con el mismo nombre en la categoría, el sistema advierte y solo lo guarda si se confirma (`confirmarDuplicado`). | `ProductoService` + `ProductoRepository.existeNombreEnCategoria()` |
+| CU02 Modificar | Se actualiza `fechaModificacion`. Cambiar el precio no afecta pedidos existentes: cada `DetallePedido` guarda su propio `precioUnitario` (Módulo 4). | `ProductoService.actualizar()` |
+| CU03 Eliminar | Baja lógica: `activo = false` y `fechaBaja`. Se conserva para el historial y RF34. Si tiene pedidos pendientes o en preparación, se impide y se sugiere marcarlo como no disponible. | Trait `TieneBajaLogica`, `ProductoRepository.tienePedidosPendientes()` |
+| CU04 Categorizar | El producto se asigna a una categoría existente, que se puede crear desde el mismo formulario. Una categoría con productos no se elimina, solo se desactiva. | `CategoriaService`, `ProductoService.cambiarCategoria()` |
+| CU05 Disponibilidad | El Cocinero (o el Administrador) marca el producto como disponible o agotado. No cancela pedidos en preparación; solo impide pedirlo de nuevo. | `ProductoService.cambiarDisponibilidad()`, permiso `gestionar_disponibilidad` |
+
+---
+
 ## Módulo 5: Inventario
 
 Requerimientos: RF23 a RF27 y RF38 a RF40 (ver [Proyecto_de_semestre.md](Proyecto_de_semestre.md)).

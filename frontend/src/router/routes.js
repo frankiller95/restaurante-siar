@@ -29,6 +29,26 @@ const routes = [
         component: () => import('@/pages/BitacoraPage.vue'),
         meta: { permiso: 'gestionar_usuarios' },
       },
+
+      // Módulo 2: Gestión de Menú
+      {
+        path: 'carta',
+        name: 'carta',
+        component: () => import('@/pages/menu/CartaPage.vue'),
+        meta: { permisos: ['consultar_menu', 'gestionar_menu', 'gestionar_disponibilidad'] },
+      },
+      {
+        path: 'productos',
+        name: 'productos',
+        component: () => import('@/pages/menu/ProductosPage.vue'),
+        meta: { permisos: ['gestionar_menu', 'gestionar_disponibilidad'] },
+      },
+      {
+        path: 'categorias',
+        name: 'categorias',
+        component: () => import('@/pages/menu/CategoriasPage.vue'),
+        meta: { permiso: 'gestionar_menu' },
+      },
     ],
   },
   {

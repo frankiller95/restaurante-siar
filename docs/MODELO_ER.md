@@ -125,3 +125,13 @@ erDiagram
 - **SOLICITUDES_RECUPERACION**: la usa el sistema de recuperación de contraseñas de Laravel. El token se guarda cifrado, vence a los 60 minutos y se borra al usarse, así que es de un solo uso (reemplaza a la columna `usado`).
 - **BITACORA_AUDITORIA**: si un usuario se borra físicamente, sus registros se conservan con `id_usuario` en `NULL`.
 - **USUARIOS.estado**: `activo` o `inactivo`. La eliminación lógica (CU-03) pone el estado en `inactivo`.
+
+## Notas de implementación (Módulo 2)
+
+- **CATEGORIAS.nombre** es único (sin distinguir mayúsculas). Una categoría con productos, incluso dados de baja, no se borra: se pone `activa = false` y deja de mostrarse en la carta.
+- **PRODUCTOS.nombre** no es único: el CU01 permite repetirlo en una categoría si el administrador lo confirma.
+- **PRODUCTOS.precio** es `decimal(12,2)` y no puede ser negativo. Los pedidos (Módulo 4) deben guardar su propio precio unitario, para que un cambio de precio no sea retroactivo (CU02).
+- **PRODUCTOS.imagen_url** guarda la ruta relativa de la imagen (por ejemplo `productos/abc.jpg`) dentro de `backend/public/imagenes`. La API devuelve la URL completa.
+- **PRODUCTOS.activo / fecha_baja**: baja lógica del CU03 (trait `TieneBajaLogica`). El producto sale de la carta, pero se conserva para el historial y RF34.
+- **PRODUCTOS.disponible**: CU05, lo cambia el Cocinero con el permiso `gestionar_disponibilidad`, que agrega la migración `2026_11_04_000003`.
+- **PRODUCTOS.fecha_creacion / fecha_modificacion** las llena Laravel automáticamente.

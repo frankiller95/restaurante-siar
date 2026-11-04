@@ -46,8 +46,9 @@ export default defineRouter(({ store }) => {
       }
     }
 
-    const permiso = to.matched.map((ruta) => ruta.meta.permiso).find(Boolean)
-    if (permiso && !auth.tienePermiso(permiso)) {
+    // meta.permiso: uno solo; meta.permisos: basta con tener cualquiera de la lista.
+    const requeridos = to.matched.flatMap((ruta) => ruta.meta.permisos ?? (ruta.meta.permiso ? [ruta.meta.permiso] : []))
+    if (requeridos.length > 0 && !requeridos.some((codigo) => auth.tienePermiso(codigo))) {
       Notify.create({ type: 'negative', message: 'No tienes permiso para entrar a esa sección.' })
       return { name: 'inicio' }
     }

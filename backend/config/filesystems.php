@@ -38,6 +38,17 @@ return [
             'report' => false,
         ],
 
+        // Imágenes de productos del menú (CU01). Van directo en public/imagenes
+        // para no depender de "php artisan storage:link" en el hosting.
+        'imagenes' => [
+            'driver' => 'local',
+            'root' => public_path('imagenes'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/imagenes',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

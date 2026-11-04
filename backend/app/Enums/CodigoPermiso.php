@@ -10,6 +10,7 @@ enum CodigoPermiso: string
 {
     case GESTIONAR_USUARIOS = 'gestionar_usuarios';
     case GESTIONAR_MENU = 'gestionar_menu';
+    case GESTIONAR_DISPONIBILIDAD = 'gestionar_disponibilidad';
     case CONSULTAR_MENU = 'consultar_menu';
     case GESTIONAR_MESAS = 'gestionar_mesas';
     case CONSULTAR_MESAS = 'consultar_mesas';
@@ -25,6 +26,7 @@ enum CodigoPermiso: string
         return match ($this) {
             self::GESTIONAR_USUARIOS => 'Gestionar usuarios y roles',
             self::GESTIONAR_MENU => 'Gestionar menú',
+            self::GESTIONAR_DISPONIBILIDAD => 'Gestionar disponibilidad del menú',
             self::CONSULTAR_MENU => 'Consultar menú',
             self::GESTIONAR_MESAS => 'Gestionar mesas',
             self::CONSULTAR_MESAS => 'Consultar mesas',
@@ -42,6 +44,7 @@ enum CodigoPermiso: string
         return match ($this) {
             self::GESTIONAR_USUARIOS => 'Registrar, editar y eliminar usuarios; administrar roles y permisos.',
             self::GESTIONAR_MENU => 'Crear, modificar y eliminar productos y categorías.',
+            self::GESTIONAR_DISPONIBILIDAD => 'Marcar productos como disponibles o agotados en tiempo real.',
             self::CONSULTAR_MENU => 'Ver el menú y la disponibilidad de productos.',
             self::GESTIONAR_MESAS => 'Crear y modificar mesas.',
             self::CONSULTAR_MESAS => 'Consultar el estado de las mesas.',

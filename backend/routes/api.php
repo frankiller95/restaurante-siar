@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BitacoraController;
+use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\PermisoController;
+use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\RolController;
 use App\Http\Controllers\Api\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -34,4 +36,31 @@ Route::middleware(['auth:sanctum', 'permiso:gestionar_usuarios'])->group(functio
 
     Route::get('permisos', [PermisoController::class, 'index']);
     Route::get('bitacora', [BitacoraController::class, 'index']);
+});
+
+// --- Módulo 2: gestión de menú (CU01 a CU05) ---------------------------------
+Route::middleware('auth:sanctum')->group(function () {
+    // Consulta: cualquiera que vea el menú, lo administre o gestione la disponibilidad.
+    Route::middleware('permiso:consultar_menu,gestionar_menu,gestionar_disponibilidad')->group(function () {
+        Route::get('menu', [ProductoController::class, 'menu']);
+        Route::get('categorias', [CategoriaController::class, 'index']);
+        Route::get('productos', [ProductoController::class, 'index']);
+        Route::get('productos/{producto}', [ProductoController::class, 'show']);
+    });
+
+    // CU01 a CU04: el administrador gestiona productos y categorías.
+    Route::middleware('permiso:gestionar_menu')->group(function () {
+        Route::post('categorias', [CategoriaController::class, 'store']);
+        Route::put('categorias/{categoria}', [CategoriaController::class, 'update']);
+        Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy']);
+
+        Route::post('productos', [ProductoController::class, 'store']);
+        Route::put('productos/{producto}', [ProductoController::class, 'update']);
+        Route::delete('productos/{producto}', [ProductoController::class, 'destroy']);
+        Route::patch('productos/{producto}/categoria', [ProductoController::class, 'cambiarCategoria']);
+    });
+
+    // CU05: el cocinero (o el administrador) cambia la disponibilidad.
+    Route::patch('productos/{producto}/disponibilidad', [ProductoController::class, 'cambiarDisponibilidad'])
+        ->middleware('permiso:gestionar_disponibilidad');
 });

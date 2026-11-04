@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Reglas de negocio de los casos de uso -> {"message": "..."} con su código HTTP.
         $exceptions->render(function (ReglaNegocioException $e) {
-            return response()->json(['message' => $e->getMessage()], $e->codigoHttp);
+            return response()->json(array_filter([
+                'message' => $e->getMessage(),
+                'codigo' => $e->codigo,
+            ]), $e->codigoHttp);
         });
     })->create();

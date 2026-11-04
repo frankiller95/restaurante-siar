@@ -35,4 +35,23 @@ return [
     */
     'duracion_sesion_minutos' => (int) env('SIAR_DURACION_SESION', 480),
 
+    /*
+    | CU03 Eliminar producto: no se da de baja si está en pedidos con estos
+    | estados. Las tablas llegan con el Módulo 4 (Pedidos); mientras no existan,
+    | se asume que no hay pedidos pendientes.
+    */
+    'pedidos' => [
+        'tabla_pedidos' => 'pedidos',
+        'tabla_detalle' => 'detalle_pedidos',
+        'estados_pendientes' => ['pendiente', 'en_preparacion'],
+    ],
+
+    /*
+    | Imágenes de productos: tamaño máximo en KB y formatos permitidos.
+    */
+    'imagenes' => [
+        'max_kb' => 2048,
+        'formatos' => ['jpg', 'jpeg', 'png', 'webp'],
+    ],
+
 ];

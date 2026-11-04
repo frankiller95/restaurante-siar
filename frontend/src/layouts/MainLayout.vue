@@ -91,9 +91,26 @@ const menu = [
     ],
   },
   {
+    titulo: 'Menú',
+    opciones: [
+      {
+        titulo: 'Carta del menú',
+        icono: 'menu_book',
+        to: { name: 'carta' },
+        permisos: ['consultar_menu', 'gestionar_menu', 'gestionar_disponibilidad'],
+      },
+      {
+        titulo: 'Productos',
+        icono: 'restaurant_menu',
+        to: { name: 'productos' },
+        permisos: ['gestionar_menu', 'gestionar_disponibilidad'],
+      },
+      { titulo: 'Categorías', icono: 'category', to: { name: 'categorias' }, permiso: 'gestionar_menu' },
+    ],
+  },
+  {
     titulo: 'Operación',
     opciones: [
-      { titulo: 'Menú', icono: 'restaurant_menu', nota: 'Próximamente', permisos: ['gestionar_menu', 'consultar_menu'] },
       { titulo: 'Mesas', icono: 'table_restaurant', nota: 'Próximamente', permisos: ['gestionar_mesas', 'consultar_mesas'] },
     ],
   },

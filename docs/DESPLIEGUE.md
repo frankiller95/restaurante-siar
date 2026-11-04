@@ -239,6 +239,26 @@ El script descarga los cambios, instala dependencias, aplica migraciones nuevas 
 
 **Frontend:** repite el paso 8 (compilar, empaquetar, subir y extraer, reemplazando los archivos).
 
+### Al desplegar el Módulo 2 (Menú)
+
+`bash scripts/desplegar.sh` crea las tablas `categorias` y `productos` y le da al Cocinero el permiso `gestionar_disponibilidad`. Además, una sola vez:
+
+```bash
+cd ~/domains/siar.frajarele.dev/siar-app/backend
+```
+
+Carga las categorías iniciales (Entradas, Platos fuertes, Bebidas, Postres). Es opcional y no duplica las que ya existan:
+
+```bash
+php artisan db:seed --class=CategoriaSeeder --force
+```
+
+Crea la carpeta de imágenes de productos con permiso de escritura:
+
+```bash
+mkdir -p public/imagenes && chmod 775 public/imagenes
+```
+
 ---
 
 ## Problemas comunes
