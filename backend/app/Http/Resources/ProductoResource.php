@@ -19,6 +19,8 @@ class ProductoResource extends JsonResource
             'precio' => (float) $this->precio,
             'imagen_url' => ProductoService::urlImagen($this->imagen_url),
             'disponible' => $this->disponible,
+            // RF40: el inventario lo agotó (se reactiva solo al reponer insumos).
+            'agotado_por_inventario' => (bool) $this->agotado_por_inventario,
             'activo' => $this->activo,
             'id_categoria' => $this->id_categoria,
             'categoria' => $this->whenLoaded('categoria', fn () => [

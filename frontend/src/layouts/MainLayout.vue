@@ -54,6 +54,12 @@
               <q-item-label>{{ opcion.titulo }}</q-item-label>
               <q-item-label v-if="opcion.nota" caption>{{ opcion.nota }}</q-item-label>
             </q-item-section>
+            <!-- RF40: insumos con stock bajo -->
+            <q-item-section v-if="opcion.alertas && alertasStock > 0" side>
+              <q-badge color="warning" :label="alertasStock">
+                <q-tooltip>Insumos en su stock mínimo o por debajo</q-tooltip>
+              </q-badge>
+            </q-item-section>
           </q-item>
         </template>
       </q-list>
@@ -66,15 +72,35 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
+import inventarioService from '@/services/inventarioService'
 
 const auth = useAuthStore()
 const router = useRouter()
 const $q = useQuasar()
 const menuAbierto = ref(false)
+
+// RF40: cantidad de insumos con stock bajo (para el administrador del inventario).
+const alertasStock = ref(0)
+let intervaloAlertas = null
+
+async function cargarAlertas() {
+  if (!auth.tienePermiso('gestionar_inventario')) return
+  try {
+    alertasStock.value = (await inventarioService.alertas()).length
+  } catch {
+    alertasStock.value = 0
+  }
+}
+
+onMounted(() => {
+  cargarAlertas()
+  intervaloAlertas = setInterval(cargarAlertas, 60000)
+})
+onBeforeUnmount(() => clearInterval(intervaloAlertas))
 
 /** Menú según los permisos del rol (CU-05 paso 6). */
 const menu = [
@@ -106,6 +132,19 @@ const menu = [
         permisos: ['gestionar_menu', 'gestionar_disponibilidad'],
       },
       { titulo: 'Categorías', icono: 'category', to: { name: 'categorias' }, permiso: 'gestionar_menu' },
+    ],
+  },
+  {
+    titulo: 'Pedidos',
+    opciones: [
+      { titulo: 'Pedidos', icono: 'receipt', to: { name: 'pedidos' }, permisos: ['tomar_pedidos', 'preparar_pedidos', 'facturar'] },
+      { titulo: 'Cocina', icono: 'soup_kitchen', to: { name: 'cocina' }, permiso: 'preparar_pedidos' },
+    ],
+  },
+  {
+    titulo: 'Inventario',
+    opciones: [
+      { titulo: 'Insumos', icono: 'inventory_2', to: { name: 'inventario' }, permiso: 'gestionar_inventario', alertas: true },
     ],
   },
   {

@@ -28,6 +28,7 @@ return [
         ['tabla' => 'pedidos', 'columna' => 'id_usuario'],
         ['tabla' => 'facturas', 'columna' => 'id_usuario'],
         ['tabla' => 'reservas', 'columna' => 'id_usuario'],
+        ['tabla' => 'movimientos_inventario', 'columna' => 'id_usuario'],
     ],
 
     /*

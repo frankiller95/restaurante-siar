@@ -63,6 +63,40 @@ const routes = [
         component: () => import('@/pages/mesas/ReservasPage.vue'),
         meta: { permisos: ['gestionar_reservas', 'gestionar_mesas'] },
       },
+
+      // Módulo 4: Pedidos
+      {
+        path: 'pedidos',
+        name: 'pedidos',
+        component: () => import('@/pages/pedidos/PedidosPage.vue'),
+        meta: { permisos: ['tomar_pedidos', 'preparar_pedidos', 'facturar'] },
+      },
+      {
+        path: 'pedidos/:id(\\d+)',
+        name: 'pedido',
+        component: () => import('@/pages/pedidos/PedidoDetallePage.vue'),
+        meta: { permisos: ['tomar_pedidos', 'preparar_pedidos', 'facturar'] },
+      },
+      {
+        path: 'cocina',
+        name: 'cocina',
+        component: () => import('@/pages/pedidos/CocinaPage.vue'),
+        meta: { permiso: 'preparar_pedidos' },
+      },
+
+      // Módulo 5: Inventario
+      {
+        path: 'inventario',
+        name: 'inventario',
+        component: () => import('@/pages/inventario/InventarioPage.vue'),
+        meta: { permiso: 'gestionar_inventario' },
+      },
+      {
+        path: 'inventario/:id(\\d+)',
+        name: 'kardex',
+        component: () => import('@/pages/inventario/KardexPage.vue'),
+        meta: { permiso: 'gestionar_inventario' },
+      },
     ],
   },
   {

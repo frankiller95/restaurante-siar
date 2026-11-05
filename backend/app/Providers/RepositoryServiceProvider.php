@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Contracts\Repositories\BitacoraRepositoryInterface;
 use App\Contracts\Repositories\CategoriaRepositoryInterface;
+use App\Contracts\Repositories\InsumoRepositoryInterface;
 use App\Contracts\Repositories\MesaRepositoryInterface;
+use App\Contracts\Repositories\PedidoRepositoryInterface;
 use App\Contracts\Repositories\PermisoRepositoryInterface;
 use App\Contracts\Repositories\ProductoRepositoryInterface;
 use App\Contracts\Repositories\ReservaRepositoryInterface;
@@ -13,7 +15,9 @@ use App\Contracts\Repositories\UsuarioRepositoryInterface;
 use App\Contracts\Services\ServicioCorreo;
 use App\Repositories\Eloquent\BitacoraRepository;
 use App\Repositories\Eloquent\CategoriaRepository;
+use App\Repositories\Eloquent\InsumoRepository;
 use App\Repositories\Eloquent\MesaRepository;
+use App\Repositories\Eloquent\PedidoRepository;
 use App\Repositories\Eloquent\PermisoRepository;
 use App\Repositories\Eloquent\ProductoRepository;
 use App\Repositories\Eloquent\ReservaRepository;
@@ -41,6 +45,8 @@ class RepositoryServiceProvider extends ServiceProvider
         ProductoRepositoryInterface::class => ProductoRepository::class,
         MesaRepositoryInterface::class => MesaRepository::class,
         ReservaRepositoryInterface::class => ReservaRepository::class,
+        PedidoRepositoryInterface::class => PedidoRepository::class,
+        InsumoRepositoryInterface::class => InsumoRepository::class,
         ServicioCorreo::class => ServicioCorreoLaravel::class,
     ];
 }

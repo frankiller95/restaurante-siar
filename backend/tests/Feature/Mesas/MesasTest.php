@@ -3,15 +3,14 @@
 namespace Tests\Feature\Mesas;
 
 use App\Enums\EstadoMesa;
+use App\Enums\EstadoPedido;
 use App\Enums\TipoEvento;
 use App\Models\Mesa;
+use App\Models\Pedido;
 use App\Models\Reserva;
 use App\Models\Rol;
 use App\Models\Usuario;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /** RF12 Crear, RF13 Modificar, RF14 Consultar estado y RF16 Liberar mesas. */
@@ -161,21 +160,15 @@ class MesasTest extends TestCase
 
     public function test_no_libera_una_mesa_con_pedidos_abiertos(): void
     {
-        // Simula la tabla del Módulo 4 (Pedidos).
-        Schema::create('pedidos', function (Blueprint $table) {
-            $table->id('id_pedido');
-            $table->unsignedBigInteger('id_mesa');
-            $table->string('estado');
-        });
-
+        // Un pedido del Módulo 4 entregado pero sin facturar.
         $mesa = Mesa::factory()->enEstado(EstadoMesa::OCUPADA)->create();
-        DB::table('pedidos')->insert(['id_mesa' => $mesa->id_mesa, 'estado' => 'entregado']);
+        $pedido = Pedido::factory()->enEstado(EstadoPedido::ENTREGADO)->create(['id_mesa' => $mesa->id_mesa]);
 
         $this->comoUsuario($this->admin)
             ->patchJson("/api/mesas/{$mesa->id_mesa}/liberar")
             ->assertStatus(409);
 
-        DB::table('pedidos')->update(['estado' => 'facturado']);
+        $pedido->marcarFacturado();
         $this->patchJson("/api/mesas/{$mesa->id_mesa}/liberar")->assertOk();
     }
 

@@ -2,17 +2,17 @@
 
 namespace Tests\Feature\Menu;
 
+use App\Enums\EstadoPedido;
 use App\Enums\TipoEvento;
 use App\Models\Categoria;
+use App\Models\DetallePedido;
+use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\Rol;
 use App\Models\Usuario;
 use App\Services\ProductoService;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -187,20 +187,10 @@ class ProductosTest extends TestCase
 
     public function test_no_elimina_un_producto_con_pedidos_pendientes(): void
     {
-        // Simula las tablas del Módulo 4 (Pedidos).
-        Schema::create('pedidos', function (Blueprint $table) {
-            $table->id('id_pedido');
-            $table->string('estado');
-        });
-        Schema::create('detalle_pedidos', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('id_pedido');
-            $table->unsignedBigInteger('id_producto');
-        });
-
+        // Un pedido del Módulo 4 en preparación que incluye el producto.
         $producto = Producto::factory()->create(['id_categoria' => $this->platos->id_categoria]);
-        $idPedido = DB::table('pedidos')->insertGetId(['estado' => 'en_preparacion']);
-        DB::table('detalle_pedidos')->insert(['id_pedido' => $idPedido, 'id_producto' => $producto->id_producto]);
+        $pedido = Pedido::factory()->enEstado(EstadoPedido::EN_PREPARACION)->create();
+        DetallePedido::factory()->create(['id_pedido' => $pedido->id_pedido, 'id_producto' => $producto->id_producto]);
 
         $this->comoUsuario($this->admin)
             ->deleteJson("/api/productos/{$producto->id_producto}")
@@ -208,7 +198,7 @@ class ProductosTest extends TestCase
             ->assertJsonPath('codigo', 'pedidos_pendientes');
 
         // Con el pedido ya entregado, sí se puede dar de baja.
-        DB::table('pedidos')->update(['estado' => 'entregado']);
+        $pedido->forceFill(['estado' => EstadoPedido::ENTREGADO])->save();
         $this->deleteJson("/api/productos/{$producto->id_producto}")->assertOk();
     }
 

@@ -47,6 +47,9 @@ const modulos = [
   { titulo: 'Categorías', descripcion: 'Entradas, platos fuertes, bebidas, postres...', icono: 'category', to: { name: 'categorias' }, permisos: ['gestionar_menu'] },
   { titulo: 'Mesas', descripcion: 'Plano de mesas: libres, ocupadas, reservadas y en mantenimiento.', icono: 'table_restaurant', to: { name: 'mesas' }, permisos: ['consultar_mesas', 'gestionar_mesas', 'gestionar_reservas'] },
   { titulo: 'Reservas', descripcion: 'Registrar reservas, llegadas y cancelaciones.', icono: 'event', to: { name: 'reservas' }, permisos: ['gestionar_reservas', 'gestionar_mesas'] },
+  { titulo: 'Pedidos', descripcion: 'Tomar pedidos, enviarlos a cocina y seguir su estado.', icono: 'receipt', to: { name: 'pedidos' }, permisos: ['tomar_pedidos', 'preparar_pedidos', 'facturar'] },
+  { titulo: 'Cocina', descripcion: 'Cola de pedidos por preparar, en preparación y listos.', icono: 'soup_kitchen', to: { name: 'cocina' }, permisos: ['preparar_pedidos'] },
+  { titulo: 'Inventario', descripcion: 'Insumos, entradas, mermas, ajustes y kárdex.', icono: 'inventory_2', to: { name: 'inventario' }, permisos: ['gestionar_inventario'] },
   { titulo: 'Mi perfil', descripcion: 'Tus datos y cambio de contraseña.', icono: 'person', to: { name: 'perfil' }, permisos: [] },
 ]
 

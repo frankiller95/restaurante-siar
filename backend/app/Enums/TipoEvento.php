@@ -36,4 +36,21 @@ enum TipoEvento: string
     case RESERVA_CANCELADA = 'reserva_cancelada';
     case RESERVA_CUMPLIDA = 'reserva_cumplida';
     case RESERVA_NO_ASISTIO = 'reserva_no_asistio';
+    case PEDIDO_CREADO = 'pedido_creado';
+    case PEDIDO_ACTUALIZADO = 'pedido_actualizado';
+    case PEDIDO_ENVIADO_COCINA = 'pedido_enviado_cocina';
+    case PEDIDO_EN_PREPARACION = 'pedido_en_preparacion';
+    case PEDIDO_LISTO = 'pedido_listo';
+    case PEDIDO_ENTREGADO = 'pedido_entregado';
+    case PEDIDO_CANCELADO = 'pedido_cancelado';
+    case INSUMO_CREADO = 'insumo_creado';
+    case INSUMO_ACTUALIZADO = 'insumo_actualizado';
+    case INSUMO_ELIMINADO = 'insumo_eliminado';
+    case INVENTARIO_ENTRADA = 'inventario_entrada';
+    case INVENTARIO_MERMA = 'inventario_merma';
+    case INVENTARIO_AJUSTE = 'inventario_ajuste';
+    case STOCK_BAJO = 'stock_bajo';
+    case RECETA_ACTUALIZADA = 'receta_actualizada';
+    case PRODUCTO_AGOTADO_INVENTARIO = 'producto_agotado_inventario';
+    case PRODUCTO_REPUESTO_INVENTARIO = 'producto_repuesto_inventario';
 }

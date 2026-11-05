@@ -19,6 +19,19 @@ erDiagram
     USUARIOS ||--o{ RESERVAS : realiza
     MESAS ||--o{ RESERVAS : asigna
 
+    %% --- MÓDULO 4: PEDIDOS ---
+    MESAS ||--o{ PEDIDOS : recibe
+    USUARIOS ||--o{ PEDIDOS : toma
+    PEDIDOS ||--|{ DETALLE_PEDIDOS : contiene
+    PRODUCTOS ||--o{ DETALLE_PEDIDOS : incluido_en
+
+    %% --- MÓDULO 5: INVENTARIO ---
+    INSUMOS ||--o{ MOVIMIENTOS_INVENTARIO : registra
+    USUARIOS ||--o{ MOVIMIENTOS_INVENTARIO : realiza
+    PEDIDOS ||--o{ MOVIMIENTOS_INVENTARIO : origina
+    PRODUCTOS ||--o{ DETALLE_RECETAS : receta
+    INSUMOS ||--o{ DETALLE_RECETAS : usado_en
+
     %% --- TABLAS MÓDULO 1 ---
     USUARIOS {
         int id_usuario PK
@@ -126,6 +139,67 @@ erDiagram
         datetime fecha_creacion
         datetime fecha_modificacion
     }
+
+    %% --- TABLAS MÓDULO 4 ---
+    PEDIDOS {
+        int id_pedido PK
+        enum estado
+        string observaciones
+        string motivo_cancelacion
+        datetime fecha_envio_cocina
+        datetime fecha_inicio_preparacion
+        datetime fecha_listo
+        datetime fecha_entrega
+        datetime fecha_cancelacion
+        datetime fecha_creacion
+        datetime fecha_modificacion
+        int id_mesa FK
+        int id_usuario FK
+    }
+
+    DETALLE_PEDIDOS {
+        int id_detalle PK
+        int cantidad
+        decimal precio_unitario
+        string observacion
+        int id_pedido FK
+        int id_producto FK
+    }
+
+    %% --- TABLAS MÓDULO 5 ---
+    INSUMOS {
+        int id_insumo PK
+        string nombre
+        enum unidad_medida
+        decimal stock_actual
+        decimal stock_minimo
+        decimal costo_unitario
+        boolean activo
+        datetime fecha_creacion
+        datetime fecha_modificacion
+        datetime fecha_baja
+    }
+
+    MOVIMIENTOS_INVENTARIO {
+        int id_movimiento PK
+        enum tipo
+        decimal cantidad
+        decimal stock_resultante
+        decimal costo_unitario
+        string proveedor
+        string motivo
+        datetime fecha
+        int id_insumo FK
+        int id_usuario FK
+        int id_pedido FK
+    }
+
+    DETALLE_RECETAS {
+        int id_detalle_receta PK
+        decimal cantidad_por_porcion
+        int id_producto FK
+        int id_insumo FK
+    }
 ```
 
 ## Notas de implementación (Módulo 1)
@@ -153,3 +227,21 @@ erDiagram
 - **RESERVAS.id_usuario** es el usuario del personal que registró la reserva. Los datos del cliente van en **cliente_nombre** y **cliente_telefono**, porque el sistema no tiene un rol "Cliente" (una reserva pública hecha por el cliente sería parte del módulo Reservas del tercer corte).
 - **RESERVAS.estado** es `pendiente`, `cumplida` (llegó el cliente), `cancelada` o `no_asistio` (pasó la tolerancia sin llegar).
 - **RESERVAS.fecha / hora** están en la zona horaria del restaurante (`America/Bogota`, en `config/siar.php`). Duración de la reserva: 2 h; la mesa pasa a `reservada` 1 h antes; tolerancia: 20 min. Todo es configurable con variables `SIAR_RESERVA_*` del `.env`.
+
+## Notas de implementación (Módulo 4)
+
+- **PEDIDOS.estado**: `pendiente`, `en_preparacion`, `listo`, `entregado`, `facturado` o `cancelado`. Las transiciones permitidas están en `App\Enums\EstadoPedido`.
+- "Pendiente" tiene dos momentos: mientras el mesero lo arma (`fecha_envio_cocina` vacía) y cuando ya está en la cola de cocina. Al enviarlo a cocina ya no se puede modificar, porque el inventario descontará los insumos en ese momento (RF39).
+- **PEDIDOS.id_usuario** es el mesero que tomó el pedido. Cada paso guarda su fecha (envío, preparación, listo, entrega, cancelación) para el seguimiento y los reportes.
+- **DETALLE_PEDIDOS.precio_unitario** es una copia del precio del producto al pedirlo: si el precio del menú cambia, los pedidos existentes no cambian (CU02 del Módulo 2). El total del pedido es la suma de `cantidad × precio_unitario`.
+- Un producto con líneas en pedidos `pendiente` o `en_preparacion` no se puede dar de baja (CU03 del Módulo 2), y una mesa con pedidos sin facturar no se puede liberar (RF16 del Módulo 3).
+
+## Notas de implementación (Módulo 5)
+
+- **INSUMOS.nombre** es único. **unidad_medida**: `kilogramo`, `gramo`, `litro`, `mililitro` o `unidad`; no se puede cambiar si el insumo ya tiene movimientos o recetas.
+- **INSUMOS.stock_actual** no se edita directamente: solo cambia con movimientos. El stock inicial al registrar el insumo queda como un `ajuste` con motivo "Stock inicial".
+- **MOVIMIENTOS_INVENTARIO.cantidad** lleva signo: positiva si entra (entrada, reintegro, ajuste a favor) y negativa si sale (consumo, merma, ajuste en contra). **stock_resultante** es el saldo después del movimiento (columna "Saldo" del kárdex). **tipo**: `entrada`, `consumo_pedido`, `reintegro_pedido`, `merma` o `ajuste`.
+- **MOVIMIENTOS_INVENTARIO.id_pedido** se llena en consumos, reintegros y mermas que vienen de un pedido (RF39). **id_usuario** es quien hizo la acción (para los consumos, el mesero que envió el pedido).
+- **DETALLE_RECETAS**: un insumo aparece una sola vez por producto. **cantidad_por_porcion** está en la unidad del insumo.
+- **PRODUCTOS.agotado_por_inventario** (columna nueva): `true` cuando el inventario dejó el producto no disponible (RF40). Al reponer el insumo solo se reactivan esos productos; si el cocinero lo marcó agotado a mano (CU05), la columna queda en `false` y la reposición no lo toca.
+- El consumo por pedidos puede dejar el stock en negativo: indica que el inventario físico no coincide y hay que hacer un ajuste por conteo.

@@ -104,11 +104,29 @@
             :text-color="props.row.disponible ? 'positive' : 'negative'"
             :label="props.row.disponible ? 'Disponible' : 'Agotado'"
           />
+          <!-- RF40: lo agotó el inventario; vuelve solo al reponer insumos -->
+          <div v-if="props.row.activo && props.row.agotado_por_inventario" class="text-caption text-warning">
+            <q-icon name="inventory_2" /> Sin insumos
+            <q-tooltip>El inventario no alcanza para una porción. Vuelve a estar disponible al registrar una entrada.</q-tooltip>
+          </div>
         </q-td>
       </template>
 
       <template #body-cell-acciones="props">
         <q-td :props="props" class="text-no-wrap">
+          <!-- RF38: receta del producto (Módulo 5) -->
+          <q-btn
+            v-if="puedeVerReceta && props.row.activo"
+            flat
+            round
+            dense
+            icon="menu_book"
+            color="brown"
+            aria-label="Receta"
+            @click="abrirReceta(props.row)"
+          >
+            <q-tooltip>Receta (insumos por porción)</q-tooltip>
+          </q-btn>
           <template v-if="puedeEditar && props.row.activo">
             <q-btn flat round dense icon="edit" color="primary" aria-label="Editar" @click="abrirFormulario(props.row)">
               <q-tooltip>Editar</q-tooltip>
@@ -145,6 +163,7 @@
       @guardado="recargar"
       @categoria-creada="cargarCategorias"
     />
+    <RecetaDialog v-model="recetaAbierta" :producto="productoReceta" @guardado="recargar" />
   </q-page>
 </template>
 
@@ -154,6 +173,7 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import menuService from '@/services/menuService'
 import ProductoFormDialog from '@/components/menu/ProductoFormDialog.vue'
+import RecetaDialog from '@/components/menu/RecetaDialog.vue'
 import { mensajeError } from '@/utils/errores'
 import { formatearPrecio } from '@/utils/formato'
 
@@ -169,6 +189,16 @@ const cargando = ref(false)
 const cambiando = ref(null)
 const formularioAbierto = ref(false)
 const productoSeleccionado = ref(null)
+
+// RF38: receta (quien gestiona inventario o el menú).
+const puedeVerReceta = computed(() => auth.tienePermiso('gestionar_inventario') || auth.tienePermiso('gestionar_menu'))
+const recetaAbierta = ref(false)
+const productoReceta = ref(null)
+
+function abrirReceta(producto) {
+  productoReceta.value = producto
+  recetaAbierta.value = true
+}
 
 const filtros = reactive({ buscar: '', id_categoria: null, disponible: null, estado: 'activos' })
 const paginacion = ref({ page: 1, rowsPerPage: 15, rowsNumber: 0 })

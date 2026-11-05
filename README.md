@@ -31,6 +31,8 @@ restaurante-siar/
 | 1. Gestión de usuarios (CU-01 a CU-06) | ✅ Implementado y probado |
 | 2. Gestión de menú (CU01 a CU05) | ✅ Implementado y probado |
 | 3. Gestión de mesas y reservas (RF12 a RF16) | ✅ Implementado y probado |
+| 4. Pedidos (RF17 a RF22) | ✅ Implementado y probado |
+| 5. Inventario (RF23 a RF27, RF38 a RF40) | ✅ Implementado y probado |
 
 ## ⚙️ Instalación local
 
@@ -141,6 +143,42 @@ Si el nombre ya existe en la categoría, `POST`/`PUT` de productos responde `409
 | PATCH | `/api/reservas/{id}/llegada`, `/cancelar` | Registrar llegada / cancelar | `gestionar_reservas` o `gestionar_mesas` |
 
 Las transiciones de estado inválidas (por ejemplo, liberar una mesa libre) responden `409` con `"codigo": "transicion_invalida"`. Cada mesa trae en `acciones` lo que su estado permite.
+
+## 🔌 API del Módulo 4
+
+| Método | Ruta | Requerimiento | Permiso |
+|---|---|---|---|
+| GET | `/api/pedidos` | RF22 Consultar (`estado` = `abiertos` o un estado, `id_mesa`, `fecha`, `mios=1`) | `tomar_pedidos`, `preparar_pedidos` o `facturar` |
+| GET | `/api/pedidos/{id}` | RF22 Ver un pedido con sus productos y total | igual que la anterior |
+| GET | `/api/pedidos/cocina` | RF22 Cola de cocina | `preparar_pedidos` |
+| POST | `/api/pedidos` | RF17 Crear pedido (`id_mesa`, `productos` opcional) | `tomar_pedidos` |
+| PUT | `/api/pedidos/{id}` | RF19 Observaciones del pedido | `tomar_pedidos` |
+| POST | `/api/pedidos/{id}/productos` | RF18 Agregar producto | `tomar_pedidos` |
+| PUT, DELETE | `/api/pedidos/{id}/productos/{detalle}` | RF19 Cambiar cantidad o nota / quitar | `tomar_pedidos` |
+| PATCH | `/api/pedidos/{id}/enviar-cocina` | RF21 Enviar a cocina | `tomar_pedidos` |
+| PATCH | `/api/pedidos/{id}/preparar`, `/listo` | Cocina: iniciar preparación / marcar listo | `preparar_pedidos` |
+| PATCH | `/api/pedidos/{id}/entregar` | Entregar en la mesa | `tomar_pedidos` |
+| PATCH | `/api/pedidos/{id}/cancelar` | RF20 Cancelar (`motivo`, obligatorio en preparación) | `tomar_pedidos` |
+
+Un pedido solo se modifica mientras está pendiente y no se ha enviado a cocina; si no, responde `409` con `"codigo": "pedido_no_editable"`.
+
+## 🔌 API del Módulo 5
+
+Todas requieren el permiso `gestionar_inventario` (la receta también acepta `gestionar_menu`).
+
+| Método | Ruta | Requerimiento |
+|---|---|---|
+| GET | `/api/insumos` | RF27 Existencias (`buscar`, `estado=activos\|baja\|todos`, `bajo_minimo=1`) |
+| GET | `/api/insumos/alertas` | RF40 Insumos en su stock mínimo o por debajo |
+| POST | `/api/insumos` | RF23 Registrar insumo (`stock_inicial` opcional, queda en el kárdex) |
+| GET, PUT, DELETE | `/api/insumos/{id}` | Ver / RF24 Modificar / RF24 Desactivar (baja lógica si tiene historial) |
+| POST | `/api/insumos/{id}/entradas` | RF25 Entrada (`cantidad`, `costo_unitario`, `proveedor`, `fecha`) |
+| POST | `/api/insumos/{id}/mermas` | RF26 Merma (`cantidad`, `motivo`) |
+| POST | `/api/insumos/{id}/ajustes` | RF26 Ajuste por conteo (`stock_contado`, `motivo`) |
+| GET | `/api/insumos/{id}/movimientos` | RF27 Kárdex (`tipo`, `desde`, `hasta`) |
+| GET, PUT | `/api/productos/{id}/receta` | RF38 Receta del producto (`insumos: [{id_insumo, cantidad_por_porcion}]`) |
+
+RF39 y RF40 no tienen rutas propias: el inventario escucha los eventos del Módulo 4 (`PedidoEnviadoACocina`, `PedidoCancelado`) y sus propios eventos (`StockActualizado`, `StockBajo`). Se pueden ver con `php artisan event:list`.
 
 ## 📂 Documentación
 

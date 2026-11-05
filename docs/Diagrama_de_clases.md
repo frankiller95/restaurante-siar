@@ -428,6 +428,183 @@ Cada estado es una clase (`MesaLibre`, `MesaOcupada`, `MesaReservada`, `MesaEnMa
 
 ---
 
+## Módulo 4: Pedidos
+
+Requerimientos: RF17 a RF22 (ver [Proyecto_de_semestre.md](Proyecto_de_semestre.md)).
+
+```mermaid
+classDiagram
+    class Pedido {
+        - int idPedido
+        - EstadoPedido estado
+        - String observaciones
+        - String motivoCancelacion
+        - DateTime fechaEnvioCocina
+        - DateTime fechaInicioPreparacion
+        - DateTime fechaListo
+        - DateTime fechaEntrega
+        - DateTime fechaCancelacion
+        + total() decimal
+        + esEditable() bool
+        + fueEnviadoACocina() bool
+        + enviarACocina() void
+        + iniciarPreparacion() void
+        + marcarListo() void
+        + entregar() void
+        + marcarFacturado() void
+        + cancelar(String motivo) void
+    }
+
+    class EstadoPedido {
+        <<enumeration>>
+        PENDIENTE
+        EN_PREPARACION
+        LISTO
+        ENTREGADO
+        FACTURADO
+        CANCELADO
+        + transicionesPermitidas() List~EstadoPedido~
+        + puedePasarA(EstadoPedido destino) bool
+        + esAbierto() bool
+    }
+
+    class DetallePedido {
+        - int idDetalle
+        - int cantidad
+        - decimal precioUnitario
+        - String observacion
+        + subtotal() decimal
+    }
+
+    class Producto {
+        <<Módulo 2>>
+        - int idProducto
+        - String nombre
+        - decimal precio
+        - bool disponible
+        + estaEnMenu() bool
+    }
+
+    class Mesa {
+        <<Módulo 3>>
+        - int idMesa
+        - int numero
+        - EstadoMesa estado
+        + ocupar() void
+    }
+
+    class Usuario {
+        <<Módulo 1>>
+        - int idUsuario
+        - String nombres
+    }
+
+    class PedidoDTO {
+        <<DTO>>
+        + int idMesa
+        + String observaciones
+        + List~LineaPedidoDTO~ productos
+    }
+
+    class LineaPedidoDTO {
+        <<DTO>>
+        + int idProducto
+        + int cantidad
+        + String observacion
+    }
+
+    class PedidoService {
+        + listar(Map filtros) List~Pedido~
+        + colaDeCocina() List~Pedido~
+        + crear(PedidoDTO datos, Usuario mesero) Pedido
+        + agregarProducto(Pedido pedido, LineaPedidoDTO linea) Pedido
+        + modificarProducto(DetallePedido detalle, int cantidad, String observacion) Pedido
+        + quitarProducto(DetallePedido detalle) Pedido
+        + actualizar(Pedido pedido, String observaciones) Pedido
+        + enviarACocina(Pedido pedido) Pedido
+        + iniciarPreparacion(Pedido pedido) Pedido
+        + marcarListo(Pedido pedido) Pedido
+        + entregar(Pedido pedido) Pedido
+        + cancelar(Pedido pedido, String motivo) Pedido
+    }
+
+    class PedidoRepositoryInterface {
+        <<interface>>
+        + buscar(Map filtros) List~Pedido~
+        + colaDeCocina() List~Pedido~
+        + crear(Map datos) Pedido
+        + agregarLinea(Pedido pedido, Map datos) DetallePedido
+    }
+
+    class TransicionPedidoException {
+        <<exception>>
+    }
+
+    class PedidoEnviadoACocina {
+        <<event>>
+        + Pedido pedido
+    }
+
+    class PedidoCancelado {
+        <<event>>
+        + Pedido pedido
+        + bool estabaEnPreparacion
+    }
+
+    class EventoAuditable {
+        <<event>>
+    }
+
+    %% Relaciones
+    Pedido "1" *-- "1..*" DetallePedido : contiene
+    DetallePedido "*" --> "1" Producto : pide
+    Pedido "*" --> "1" Mesa : se sirve en
+    Pedido "*" --> "1" Usuario : tomado por
+    Pedido "*" --> "1" EstadoPedido : estado
+    EstadoPedido ..> TransicionPedidoException : valida transiciones
+
+    %% Capas y patrones
+    PedidoService ..> PedidoDTO : recibe
+    PedidoDTO "1" *-- "*" LineaPedidoDTO
+    PedidoService ..> PedidoRepositoryInterface : usa (Repository)
+    PedidoService ..> Mesa : ocupa si está libre (State)
+    PedidoService ..> PedidoEnviadoACocina : publica (Observer)
+    PedidoService ..> PedidoCancelado : publica (Observer)
+    PedidoService ..> EventoAuditable : publica
+```
+
+### Estados del pedido
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pendiente : crear pedido (RF17)
+    Pendiente --> Pendiente : agregar o modificar productos (RF18, RF19)
+    Pendiente --> Pendiente : enviar a cocina (RF21)
+    Pendiente --> EnPreparacion : cocinero inicia preparación
+    EnPreparacion --> Listo : cocinero marca listo
+    Listo --> Entregado : mesero entrega
+    Entregado --> Facturado : factura (Módulo 6)
+    Pendiente --> Cancelado : cancelar (RF20)
+    EnPreparacion --> Cancelado : cancelar con motivo (RF20)
+```
+
+"Pendiente" tiene dos momentos: mientras el mesero arma el pedido (`fechaEnvioCocina` vacía) y cuando ya está en la cola de cocina esperando al cocinero. Así el inventario (RF39) descuenta insumos al **enviar a cocina** y los reintegra si se cancela antes de "En preparación".
+
+### Reglas de negocio del Módulo 4
+
+| RF | Regla | Dónde se aplica |
+|---|---|---|
+| RF17 Crear pedido | El pedido se toma para una mesa activa. Si está **libre**, se ocupa sola (patrón State); si está reservada o en mantenimiento, no se permite. Una mesa puede tener varios pedidos (rondas). | `PedidoService.crear()` |
+| RF18 Agregar productos | Solo productos activos, **disponibles** y de categorías activas. Cada línea guarda el **precio unitario** del momento (un cambio de precio no es retroactivo, CU02). El mismo producto con la misma observación suma cantidad. | `PedidoService.agregarProducto()` |
+| RF19 Modificar pedido | Solo mientras está **Pendiente y no se ha enviado a cocina**: cambiar cantidades u observaciones y quitar productos. Una vez enviado (el inventario ya descontó insumos), se cancela o se toma un pedido nuevo para la misma mesa. | `Pedido.esEditable()` |
+| RF20 Cancelar pedido | Se puede cancelar en **Pendiente** o **En preparación**. En preparación el motivo es obligatorio. Publica `PedidoCancelado` para que el inventario reintegre o registre merma (RF39). | `PedidoService.cancelar()` |
+| RF21 Enviar a cocina | El pedido debe tener al menos un producto y todos deben seguir disponibles. Publica `PedidoEnviadoACocina` (el inventario descontará insumos, RF39). | `PedidoService.enviarACocina()` |
+| RF22 Consultar estado | Lista con filtros por estado, mesa y fecha, y una **cola de cocina** con los pedidos enviados, en preparación y listos. | `PedidoService.listar()`, `colaDeCocina()` |
+
+Permisos: `tomar_pedidos` (Mesero) toma, modifica, envía, cancela y entrega; `preparar_pedidos` (Cocinero) inicia la preparación y marca listo; `facturar` (Cajero) consulta. El Administrador tiene todos.
+
+---
+
 ## Módulo 5: Inventario
 
 Requerimientos: RF23 a RF27 y RF38 a RF40 (ver [Proyecto_de_semestre.md](Proyecto_de_semestre.md)).
@@ -492,6 +669,7 @@ classDiagram
         - int idProducto
         - String nombre
         - bool disponible
+        - bool agotadoPorInventario
         + marcarDisponible(bool disponible) void
         + insumosNecesarios(int porciones) List~DetalleReceta~
     }
@@ -517,12 +695,24 @@ classDiagram
 
     class InventarioService {
         + registrarInsumo(InsumoDTO datos) Insumo
+        + actualizarInsumo(Insumo insumo, InsumoDTO datos) Insumo
+        + eliminarInsumo(Insumo insumo) String
         + registrarEntrada(Insumo insumo, decimal cantidad, decimal costo, String proveedor) MovimientoInventario
-        + registrarSalida(Insumo insumo, decimal cantidad, TipoMovimiento tipo, String motivo) MovimientoInventario
+        + registrarMerma(Insumo insumo, decimal cantidad, String motivo) MovimientoInventario
+        + ajustarConteo(Insumo insumo, decimal stockContado, String motivo) MovimientoInventario
         + descontarPorPedido(Pedido pedido) void
-        + reintegrarPorPedido(Pedido pedido) void
+        + reintegrarPorPedido(Pedido pedido, bool comoMerma) void
         + consultarKardex(Insumo insumo, Date desde, Date hasta) List~MovimientoInventario~
         + insumosBajoMinimo() List~Insumo~
+    }
+
+    class RecetaService {
+        + receta(Producto producto) List~DetalleReceta~
+        + guardar(Producto producto, List lineas) List~DetalleReceta~
+    }
+
+    class DisponibilidadMenuService {
+        + actualizar(List idsInsumo) void
     }
 
     class InsumoRepositoryInterface {
@@ -549,20 +739,25 @@ classDiagram
         + Insumo insumo
     }
 
+    class StockActualizado {
+        <<event>>
+        + List idsInsumo
+    }
+
     class InventarioObserver {
         <<observer>>
-        + alEnviarACocina(PedidoEnviadoACocina evento) void
-        + alCancelarPedido(PedidoCancelado evento) void
+        + handlePedidoEnviadoACocina(PedidoEnviadoACocina evento) void
+        + handlePedidoCancelado(PedidoCancelado evento) void
     }
 
     class DisponibilidadMenuObserver {
         <<observer>>
-        + alStockBajo(StockBajo evento) void
+        + handle(StockActualizado evento) void
     }
 
     class AlertaStockObserver {
         <<observer>>
-        + alStockBajo(StockBajo evento) void
+        + handle(StockBajo evento) void
     }
 
     %% Relaciones del inventario
@@ -582,14 +777,18 @@ classDiagram
     InventarioService ..> InsumoRepositoryInterface : usa (Repository)
     InventarioService ..> Producto : consulta receta
     InventarioService ..> StockBajo : publica
+    InventarioService ..> StockActualizado : publica
+    RecetaService ..> DetalleReceta : guarda
+    RecetaService ..> StockActualizado : publica
 
     Pedido ..> PedidoEnviadoACocina : publica
     Pedido ..> PedidoCancelado : publica
     InventarioObserver ..> PedidoEnviadoACocina : escucha
     InventarioObserver ..> PedidoCancelado : escucha
     InventarioObserver ..> InventarioService : descuenta / reintegra
-    DisponibilidadMenuObserver ..> StockBajo : escucha
-    DisponibilidadMenuObserver ..> Producto : marca no disponible
+    DisponibilidadMenuObserver ..> StockActualizado : escucha
+    DisponibilidadMenuObserver ..> DisponibilidadMenuService : usa
+    DisponibilidadMenuService ..> Producto : agota o reactiva
     AlertaStockObserver ..> StockBajo : escucha
 ```
 
@@ -602,11 +801,18 @@ classDiagram
 | RF27 | `InventarioService.consultarKardex()` | El kárdex es la lista de movimientos de un insumo en un rango de fechas. |
 | RF38 | `Producto`, `DetalleReceta`, `Insumo` | La receta dice cuánto de cada insumo lleva una porción del producto. |
 | RF39 | `PedidoEnviadoACocina`, `PedidoCancelado`, `InventarioObserver` | Al enviar un pedido a cocina se descuentan los insumos (`CONSUMO_PEDIDO`). Si se cancela antes de prepararse, se reintegran (`REINTEGRO_PEDIDO`); si ya estaba en preparación, se registra como `MERMA`. |
-| RF40 | `StockBajo`, `DisponibilidadMenuObserver`, `AlertaStockObserver` | Cuando un insumo baja del mínimo se avisa al administrador, y los productos que ya no se pueden preparar se marcan como no disponibles (RF11). |
+| RF26 | `InventarioService.registrarMerma()`, `ajustarConteo()` | La merma descuenta una cantidad (no puede superar el stock). El ajuste por conteo físico recibe el stock contado y registra la diferencia (positiva o negativa). Ambos exigen motivo. |
+| RF40 | `StockBajo`, `StockActualizado`, `AlertaStockObserver`, `DisponibilidadMenuObserver` | Cuando un insumo llega a su mínimo se registra una alerta en la bitácora y aparece en la lista de alertas. Cada cambio de stock publica `StockActualizado`: los productos cuya receta ya no alcanza para una porción se marcan **no disponibles** (`agotadoPorInventario = true`), y cuando se repone el insumo vuelven a estar disponibles. Solo se reactivan los que agotó el inventario, no los que el cocinero marcó a mano (CU05). |
 | RF35 | `MovimientoInventario` | El reporte de consumo de inventario se calcula a partir de los movimientos de tipo `CONSUMO_PEDIDO` y `MERMA`. |
 
 ### Patrones aplicados en este módulo
 
-- **Observer:** `Pedido` publica `PedidoEnviadoACocina` y `PedidoCancelado`, y el inventario reacciona sin que el módulo de Pedidos lo conozca. Igual con `StockBajo`, que lo escuchan la alerta y la disponibilidad del menú.
+- **Observer:** `Pedido` publica `PedidoEnviadoACocina` y `PedidoCancelado`, y el inventario reacciona sin que el módulo de Pedidos lo conozca. Igual con `StockBajo` (lo escucha la alerta) y `StockActualizado` (lo escucha la disponibilidad del menú).
+
+### Notas
+
+- La cantidad de la receta está en la **unidad del insumo** (ej. arroz en kg → 0,150 por porción).
+- El consumo por pedidos puede dejar el stock en **negativo**: indica que el inventario físico no coincide y hay que hacer un ajuste por conteo. No se bloquea el envío a cocina para no frenar la operación.
+- Si se cancela un pedido que ya estaba **en preparación**, se registra un reintegro y una merma por la misma cantidad: el stock no cambia (lo cocinado no vuelve), pero el kárdex y el reporte RF35 lo muestran como merma y no como consumo.
 - **Repository:** `InventarioService` trabaja con `InsumoRepositoryInterface`, no con la base de datos directamente.
 - **DTO:** los datos de entrada (por ejemplo `InsumoDTO`) llegan validados al servicio, igual que en el Módulo 1.

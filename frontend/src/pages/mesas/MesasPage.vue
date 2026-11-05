@@ -82,7 +82,20 @@
             </div>
           </q-card-section>
 
-          <q-card-actions v-if="accionesDe(mesa).length" class="q-px-sm q-pt-none">
+          <q-card-actions v-if="accionesDe(mesa).length || puedeTomarPedido(mesa)" class="q-px-sm q-pt-none">
+            <!-- Módulo 4: tomar un pedido para la mesa (si está libre, se ocupa) -->
+            <q-btn
+              v-if="puedeTomarPedido(mesa)"
+              dense
+              unelevated
+              no-caps
+              size="sm"
+              color="primary"
+              icon="add_shopping_cart"
+              label="Pedido"
+              :loading="cambiando === `${mesa.id_mesa}-pedido`"
+              @click="tomarPedido(mesa)"
+            />
             <q-btn
               v-for="accion in accionesDe(mesa)"
               :key="accion"
@@ -108,15 +121,18 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import mesasService from '@/services/mesasService'
+import pedidosService from '@/services/pedidosService'
 import MesaFormDialog from '@/components/mesas/MesaFormDialog.vue'
 import ReservaFormDialog from '@/components/mesas/ReservaFormDialog.vue'
 import { mensajeError } from '@/utils/errores'
 import { ACCIONES_MESA, ESTADOS_MESA, formatearDia, formatearHora } from '@/utils/mesas'
 
 const $q = useQuasar()
+const router = useRouter()
 const auth = useAuthStore()
 
 const puedeGestionar = computed(() => auth.tienePermiso('gestionar_mesas'))
@@ -160,6 +176,22 @@ async function cargar() {
     $q.notify({ type: 'negative', message: mensajeError(error) })
   } finally {
     cargando.value = false
+  }
+}
+
+function puedeTomarPedido(mesa) {
+  return auth.tienePermiso('tomar_pedidos') && (mesa.estado === 'libre' || mesa.estado === 'ocupada')
+}
+
+async function tomarPedido(mesa) {
+  cambiando.value = `${mesa.id_mesa}-pedido`
+  try {
+    const respuesta = await pedidosService.crear(mesa.id_mesa)
+    router.push({ name: 'pedido', params: { id: respuesta.data.id_pedido } })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: mensajeError(error) })
+  } finally {
+    cambiando.value = null
   }
 }
 
