@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EstadoFactura;
 use App\Enums\EstadoPedido;
 use App\Exceptions\TransicionPedidoException;
 use Database\Factories\PedidoFactory;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
@@ -98,6 +100,20 @@ class Pedido extends Model
         return $this->hasMany(MensajePedido::class, 'id_pedido', 'id_pedido');
     }
 
+    /** Facturas del pedido (puede haber anuladas y una vigente). */
+    public function facturas(): HasMany
+    {
+        return $this->hasMany(Factura::class, 'id_pedido', 'id_pedido');
+    }
+
+    /** La factura vigente (pendiente o pagada) del pedido, si ya se facturó. */
+    public function facturaVigente(): HasOne
+    {
+        return $this->hasOne(Factura::class, 'id_pedido', 'id_pedido')
+            ->whereIn('estado', EstadoFactura::valoresVigentes())
+            ->latest('id_factura');
+    }
+
     public function total(): float
     {
         $productos = $this->detalles->sum(fn (DetallePedido $detalle) => $detalle->subtotal() - (float) ($detalle->descuento ?? 0));
@@ -150,7 +166,7 @@ class Pedido extends Model
         $this->pasarA(EstadoPedido::ENTREGADO, 'entregar', ['fecha_entrega' => now()]);
     }
 
-    /** Lo usará el Módulo 6 (Facturación). */
+    /** RF31: lo usa el Módulo 6 (Facturación) cuando la factura queda pagada. */
     public function marcarFacturado(): void
     {
         $this->pasarA(EstadoPedido::FACTURADO, 'facturar');

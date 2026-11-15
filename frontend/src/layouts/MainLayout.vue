@@ -149,6 +149,12 @@ const menu = [
     ],
   },
   {
+    titulo: 'Facturación',
+    opciones: [
+      { titulo: 'Caja y facturas', icono: 'point_of_sale', to: { name: 'facturacion' }, permiso: 'facturar' },
+    ],
+  },
+  {
     titulo: 'Operación',
     opciones: [
       {

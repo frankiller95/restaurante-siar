@@ -50,6 +50,7 @@ const modulos = [
   { titulo: 'Pedidos', descripcion: 'Tomar pedidos, enviarlos a cocina y seguir su estado.', icono: 'receipt', to: { name: 'pedidos' }, permisos: ['tomar_pedidos', 'preparar_pedidos', 'facturar'] },
   { titulo: 'Cocina', descripcion: 'Cola de pedidos por preparar, en preparación y listos.', icono: 'soup_kitchen', to: { name: 'cocina' }, permisos: ['preparar_pedidos'] },
   { titulo: 'Inventario', descripcion: 'Insumos, entradas, mermas, ajustes y kárdex.', icono: 'inventory_2', to: { name: 'inventario' }, permisos: ['gestionar_inventario'] },
+  { titulo: 'Facturación', descripcion: 'Cobrar pedidos entregados, aplicar descuentos, registrar pagos y emitir comprobantes.', icono: 'point_of_sale', to: { name: 'facturacion' }, permisos: ['facturar'] },
   { titulo: 'Mi perfil', descripcion: 'Tus datos y cambio de contraseña.', icono: 'person', to: { name: 'perfil' }, permisos: [] },
 ]
 

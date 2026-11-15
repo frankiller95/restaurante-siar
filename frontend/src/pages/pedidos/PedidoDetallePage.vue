@@ -154,6 +154,25 @@
                 :loading="accion === 'entregar'"
                 @click="ejecutar('entregar', () => pedidosService.entregar(pedido.id_pedido))"
               />
+              <!-- Módulo 6: el cajero factura el pedido entregado -->
+              <q-btn
+                v-if="puedeFacturar && pedido.factura"
+                unelevated
+                no-caps
+                color="secondary"
+                icon="receipt_long"
+                :label="`Ver factura ${pedido.factura.numero}`"
+                :to="{ name: 'factura', params: { id: pedido.factura.id_factura } }"
+              />
+              <q-btn
+                v-else-if="puedeFacturar && pedido.estado === 'entregado'"
+                unelevated
+                no-caps
+                color="primary"
+                icon="receipt_long"
+                label="Facturar"
+                @click="facturarAbierto = true"
+              />
             </q-card-actions>
           </q-card>
 
@@ -213,6 +232,8 @@
         </div>
       </div>
 
+      <FacturaFormDialog v-model="facturarAbierto" :pedido="pedido" @generada="irAFactura" />
+
       <q-card flat bordered class="q-mt-md">
         <q-card-section>
           <div class="text-subtitle1 text-weight-medium">Comentarios del cliente</div>
@@ -241,10 +262,11 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import FacturaFormDialog from '@/components/facturacion/FacturaFormDialog.vue'
 import pedidosService from '@/services/pedidosService'
 import menuService from '@/services/menuService'
 import { formatearFecha, mensajeError } from '@/utils/errores'
@@ -253,10 +275,18 @@ import { colorEstado, ESTADOS_PEDIDO, textoEstado } from '@/utils/pedidos'
 
 const $q = useQuasar()
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 
 const puedeTomar = computed(() => auth.tienePermiso('tomar_pedidos'))
 const puedePreparar = computed(() => auth.tienePermiso('preparar_pedidos'))
+const puedeFacturar = computed(() => auth.tienePermiso('facturar'))
+
+// Módulo 6: generar la factura y pasar directo a cobrarla.
+const facturarAbierto = ref(false)
+function irAFactura(factura) {
+  router.push({ name: 'factura', params: { id: factura.id_factura } })
+}
 
 const pedido = ref(null)
 const cargando = ref(false)

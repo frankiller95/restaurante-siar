@@ -245,3 +245,16 @@ erDiagram
 - **DETALLE_RECETAS**: un insumo aparece una sola vez por producto. **cantidad_por_porcion** está en la unidad del insumo.
 - **PRODUCTOS.agotado_por_inventario** (columna nueva): `true` cuando el inventario dejó el producto no disponible (RF40). Al reponer el insumo solo se reactivan esos productos; si el cocinero lo marcó agotado a mano (CU05), la columna queda en `false` y la reposición no lo toca.
 - El consumo por pedidos puede dejar el stock en negativo: indica que el inventario físico no coincide y hay que hacer un ajuste por conteo.
+
+## Notas de implementación (Módulo 6)
+
+Tablas nuevas: `facturas`, `detalle_facturas` y `pagos` (migraciones `2026_11_14_00000X`). Relaciones: un pedido tiene cero o una factura **vigente** (pendiente o pagada) y puede tener varias anuladas; una factura tiene muchas líneas y muchos pagos.
+
+- **FACTURAS.numero** es un consecutivo legible (`FAC-000001`) que se arma con el id de la factura; el prefijo sale de `SIAR_FACTURA_PREFIJO`.
+- **FACTURAS.estado**: `pendiente` (emitida, sin pago completo), `pagada` (los pagos cubren el total) o `anulada` (solo si no tiene pagos). Al quedar `pagada`, el pedido pasa a `facturado` (`PEDIDOS.estado_pago` queda en `pagado`). Al anularla, el pedido sigue `entregado` y se puede facturar de nuevo.
+- La factura es una **foto del pedido**: guarda subtotal, descuentos, base gravable, impuesto, propina y total ya calculados, además del nombre y la tarifa del impuesto. Si cambian los precios del menú o la tarifa, las facturas emitidas no cambian. **DETALLE_FACTURAS** copia cada línea como texto (descripción, adiciones, cantidad, precio y descuento).
+- **Impuesto (RF29)**: nombre, tarifa y forma de cálculo salen de `config/siar.php` (`SIAR_IMPUESTO_NOMBRE`, `SIAR_IMPUESTO_PORCENTAJE`, `SIAR_IMPUESTO_INCLUIDO`). Por defecto, impuesto al consumo del 8 % **incluido** en el precio del menú (el total no cambia; la factura discrimina cuánto es impuesto). Con `SIAR_IMPUESTO_INCLUIDO=false` el impuesto se suma al total. La propina no paga impuesto.
+- **Descuentos (RF30)**: **descuento_promociones** son los descuentos que el pedido ya traía (portal de clientes); **descuento_tipo** (`ninguno`, `porcentaje`, `valor`), **descuento_valor** y **descuento** son los del cajero (el último es el valor en pesos). Todo descuento exige un motivo. Solo se cambia mientras la factura esté pendiente y sin pagos.
+- **PAGOS (RF31)**: una factura admite pagos divididos (efectivo, tarjeta, transferencia). **monto** es lo que se abona; en efectivo, **monto_recibido** y **cambio** registran lo que entregó el cliente y lo que se devuelve. Tarjeta y transferencia exigen **referencia**. Un pago no puede superar el saldo.
+- **Comprobante (RF32)**: **FACTURAS.comprobante_emitido_en** guarda la primera emisión del comprobante de una factura pagada; reimprimir no la cambia. Los datos del restaurante que salen en el ticket vienen de `SIAR_EMISOR_*`.
+- **USUARIOS**: un usuario con pagos o facturas registradas no se borra, se inactiva (`config/siar.php → dependencias_usuario`).

@@ -52,7 +52,7 @@ class PedidoController extends Controller
 
     public function show(Pedido $pedido): PedidoResource
     {
-        return new PedidoResource($pedido->load(['mesa', 'usuario:id_usuario,nombres', 'detalles.producto', 'detalles.adiciones', 'mensajes']));
+        return new PedidoResource($pedido->load(['mesa', 'usuario:id_usuario,nombres', 'detalles.producto', 'detalles.adiciones', 'mensajes', 'facturaVigente']));
     }
 
     /** RF17 Crear pedido (con o sin productos iniciales). */

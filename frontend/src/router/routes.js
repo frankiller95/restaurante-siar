@@ -109,6 +109,20 @@ const routes = [
         component: () => import('@/pages/inventario/KardexPage.vue'),
         meta: { permiso: 'gestionar_inventario' },
       },
+
+      // Módulo 6: Facturación
+      {
+        path: 'facturacion',
+        name: 'facturacion',
+        component: () => import('@/pages/facturacion/FacturacionPage.vue'),
+        meta: { permiso: 'facturar' },
+      },
+      {
+        path: 'facturacion/:id(\\d+)',
+        name: 'factura',
+        component: () => import('@/pages/facturacion/FacturaDetallePage.vue'),
+        meta: { permiso: 'facturar' },
+      },
     ],
   },
   {

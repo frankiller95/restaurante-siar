@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BitacoraController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\ClienteController;
+use App\Http\Controllers\Api\FacturaController;
 use App\Http\Controllers\Api\InsumoController;
 use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\PedidoController;
@@ -171,6 +172,21 @@ Route::middleware(['auth:sanctum', 'permiso:gestionar_inventario'])->group(funct
     Route::post('insumos/{insumo}/mermas', [InsumoController::class, 'merma'])->name('insumos.mermas');
     Route::post('insumos/{insumo}/ajustes', [InsumoController::class, 'ajuste'])->name('insumos.ajustes');
     Route::get('insumos/{insumo}/movimientos', [InsumoController::class, 'movimientos']);
+});
+
+// --- Módulo 6: facturación (RF28 a RF32) --------------------------------------
+Route::middleware(['auth:sanctum', 'permiso:facturar'])->prefix('facturas')->group(function () {
+    // Van antes de facturas/{factura} para que no se tomen como un id.
+    Route::get('por-cobrar', [FacturaController::class, 'porCobrar']);
+    Route::post('previsualizar', [FacturaController::class, 'previsualizar']);
+
+    Route::get('/', [FacturaController::class, 'index']);
+    Route::post('/', [FacturaController::class, 'store']);
+    Route::get('{factura}', [FacturaController::class, 'show']);
+    Route::patch('{factura}/descuento', [FacturaController::class, 'descuento']);
+    Route::post('{factura}/pagos', [FacturaController::class, 'pagar']);
+    Route::patch('{factura}/anular', [FacturaController::class, 'anular']);
+    Route::post('{factura}/comprobante', [FacturaController::class, 'comprobante']);
 });
 
 // RF38: recetas (inventario o administración del menú).

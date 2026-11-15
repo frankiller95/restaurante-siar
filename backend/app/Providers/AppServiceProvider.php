@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Facturacion\CalculadoraFactura;
 use App\Models\Sesion;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
@@ -11,7 +12,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // RF29: la tarifa y la forma de calcular el impuesto salen de config/siar.php.
+        $this->app->bind(CalculadoraFactura::class, fn () => CalculadoraFactura::desdeConfiguracion());
     }
 
     public function boot(): void

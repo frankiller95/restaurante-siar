@@ -29,6 +29,7 @@ return [
         ['tabla' => 'facturas', 'columna' => 'id_usuario'],
         ['tabla' => 'reservas', 'columna' => 'id_usuario'],
         ['tabla' => 'movimientos_inventario', 'columna' => 'id_usuario'],
+        ['tabla' => 'pagos', 'columna' => 'id_usuario'],
     ],
 
     /*
@@ -66,6 +67,30 @@ return [
         'duracion_minutos' => (int) env('SIAR_RESERVA_DURACION', 120),
         'ventana_minutos' => (int) env('SIAR_RESERVA_VENTANA', 60),
         'tolerancia_minutos' => (int) env('SIAR_RESERVA_TOLERANCIA', 20),
+    ],
+
+    /*
+    | Módulo 6 Facturación (RF28 a RF32).
+    | - impuesto: nombre y tarifa (%) que se discrimina en la factura (RF29).
+    |   "incluido_en_precio" = true cuando los precios del menú ya traen el
+    |   impuesto (el total no cambia); false cuando se suma aparte.
+    |   Por defecto: impuesto nacional al consumo de restaurantes (8 %) incluido.
+    | - emisor: datos del restaurante que salen en el comprobante (RF32).
+    */
+    'facturacion' => [
+        'prefijo' => env('SIAR_FACTURA_PREFIJO', 'FAC'),
+        'impuesto' => [
+            'nombre' => env('SIAR_IMPUESTO_NOMBRE', 'Impuesto al consumo'),
+            'porcentaje' => (float) env('SIAR_IMPUESTO_PORCENTAJE', 8),
+            'incluido_en_precio' => filter_var(env('SIAR_IMPUESTO_INCLUIDO', true), FILTER_VALIDATE_BOOLEAN),
+        ],
+        'emisor' => [
+            'nombre' => env('SIAR_EMISOR_NOMBRE', 'Restaurante SIAR'),
+            'nit' => env('SIAR_EMISOR_NIT', ''),
+            'direccion' => env('SIAR_EMISOR_DIRECCION', ''),
+            'telefono' => env('SIAR_EMISOR_TELEFONO', ''),
+            'mensaje' => env('SIAR_EMISOR_MENSAJE', '¡Gracias por su visita!'),
+        ],
     ],
 
     /*

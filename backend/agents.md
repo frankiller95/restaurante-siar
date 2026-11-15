@@ -1,0 +1,1 @@
+1. No hagas simulaciones y pruebas que no te haya solicitado si debes hacer pruebas en producción o en el navegador pidemeslas siempre a mi.

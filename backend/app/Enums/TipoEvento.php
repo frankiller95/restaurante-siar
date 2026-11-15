@@ -53,4 +53,10 @@ enum TipoEvento: string
     case RECETA_ACTUALIZADA = 'receta_actualizada';
     case PRODUCTO_AGOTADO_INVENTARIO = 'producto_agotado_inventario';
     case PRODUCTO_REPUESTO_INVENTARIO = 'producto_repuesto_inventario';
+    case FACTURA_GENERADA = 'factura_generada';
+    case FACTURA_DESCUENTO_APLICADO = 'factura_descuento_aplicado';
+    case FACTURA_PAGO_REGISTRADO = 'factura_pago_registrado';
+    case FACTURA_PAGADA = 'factura_pagada';
+    case FACTURA_ANULADA = 'factura_anulada';
+    case COMPROBANTE_EMITIDO = 'comprobante_emitido';
 }

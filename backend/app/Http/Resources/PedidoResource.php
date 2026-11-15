@@ -36,6 +36,14 @@ class PedidoResource extends JsonResource
                 'ubicacion' => $this->mesa?->ubicacion,
             ]),
             'mesero' => $this->whenLoaded('usuario', fn () => $this->usuario?->nombres),
+            // Módulo 6: la factura vigente del pedido (null si todavía no se factura).
+            'factura' => $this->whenLoaded('facturaVigente', fn () => $this->facturaVigente ? [
+                'id_factura' => $this->facturaVigente->id_factura,
+                'numero' => $this->facturaVigente->numero,
+                'estado' => $this->facturaVigente->estado->value,
+                'estado_etiqueta' => $this->facturaVigente->estado->etiqueta(),
+                'total' => (float) $this->facturaVigente->total,
+            ] : null),
             'detalles' => $this->whenLoaded('detalles', fn () => $this->detalles->map(fn (DetallePedido $detalle) => [
                 'id_detalle' => $detalle->getKey(),
                 'id_producto' => $detalle->id_producto,

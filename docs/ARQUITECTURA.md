@@ -131,6 +131,22 @@ stateDiagram-v2
     Mantenimiento --> Libre : Habilitar
 ```
 
+### F. Patrón Strategy (Estrategia) — *Comportamental*
+- **Uso en el sistema:** Módulo de Facturación (RF29 impuestos y RF30 descuentos).
+- **Descripción:** Define una familia de algoritmos intercambiables, cada uno en su propia clase, y deja que el cliente elija cuál usar sin conocer los detalles.
+- **Justificación:** El valor de una factura se calcula distinto según el descuento (ninguno, porcentaje, valor fijo) y según cómo se manejen los impuestos (incluido en el precio del menú o sumado aparte). Con una estrategia por cada variante, `CalculadoraFactura` no tiene `if/else` por tipo y agregar una nueva (por ejemplo, un descuento 2x1) es crear una clase.
+- **Código:** `app/Facturacion/Descuentos` (`EstrategiaDescuento`, `SinDescuento`, `DescuentoPorcentaje`, `DescuentoValorFijo`; se elige con `TipoDescuento::estrategia()`) y `app/Facturacion/Impuestos` (`EstrategiaImpuesto`, `ImpuestoIncluidoEnPrecio`, `ImpuestoAdicional`; se elige con `config/siar.php`).
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pendiente : Generar factura (pedido Entregado)
+    Pendiente --> Pendiente : Pago parcial
+    Pendiente --> Pagada : Pagos cubren el total (pedido → Facturado)
+    Pendiente --> Anulada : Anular (sin pagos)
+```
+
+El Módulo 6 también reutiliza **Repository** (`FacturaRepositoryInterface`), **DTO** (`FacturaDTO`, `PagoDTO`) y **Observer** (cada paso publica `EventoAuditable` para la bitácora, RNF06).
+
 ---
 
 ## 3. Tecnologías
