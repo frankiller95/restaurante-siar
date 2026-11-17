@@ -94,6 +94,20 @@ return [
     ],
 
     /*
+    | Módulo 7 Reportes (RF33 a RF37).
+    | - maximo_dias: periodo más largo que se puede consultar.
+    | - horas_operacion: horas al día que atiende el restaurante; es el 100 % del
+    |   tiempo disponible de una mesa en el reporte de ocupación (RF36).
+    | - maximo_horas_por_pedido: tope de tiempo que un pedido cuenta como mesa
+    |   ocupada (un pedido que nadie cerró no ocupa la mesa indefinidamente).
+    */
+    'reportes' => [
+        'maximo_dias' => (int) env('SIAR_REPORTES_MAXIMO_DIAS', 366),
+        'horas_operacion' => (float) env('SIAR_HORAS_OPERACION', 12),
+        'maximo_horas_por_pedido' => (float) env('SIAR_OCUPACION_MAX_HORAS', 6),
+    ],
+
+    /*
     | Imágenes de productos: tamaño máximo en KB y formatos permitidos.
     */
     'imagenes' => [

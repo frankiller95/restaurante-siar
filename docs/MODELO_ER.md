@@ -258,3 +258,20 @@ Tablas nuevas: `facturas`, `detalle_facturas` y `pagos` (migraciones `2026_11_14
 - **PAGOS (RF31)**: una factura admite pagos divididos (efectivo, tarjeta, transferencia). **monto** es lo que se abona; en efectivo, **monto_recibido** y **cambio** registran lo que entregó el cliente y lo que se devuelve. Tarjeta y transferencia exigen **referencia**. Un pago no puede superar el saldo.
 - **Comprobante (RF32)**: **FACTURAS.comprobante_emitido_en** guarda la primera emisión del comprobante de una factura pagada; reimprimir no la cambia. Los datos del restaurante que salen en el ticket vienen de `SIAR_EMISOR_*`.
 - **USUARIOS**: un usuario con pagos o facturas registradas no se borra, se inactiva (`config/siar.php → dependencias_usuario`).
+
+## Notas de implementación (Módulo 7)
+
+El módulo de reportes **no crea tablas**: todo se calcula en modo lectura con las tablas existentes. Solo agrega un permiso (migración de datos `2026_11_17_000001`).
+
+| Reporte | Fuente de datos | Regla principal |
+|---|---|---|
+| RF33 Ventas por periodo | `facturas` (estado `pagada`) y `pagos` | Una venta cuenta en la **fecha de pago** de la factura. Las pendientes y las anuladas no son ventas. Se agrupa por día, semana (lunes a domingo) o mes, en la zona horaria del restaurante. |
+| RF34 Productos más vendidos | `detalle_facturas` de facturas pagadas | Se une por producto (un producto renombrado no se duplica); se ordena por unidades o por ingresos. |
+| RF35 Consumo de inventario | `movimientos_inventario` (kárdex del Módulo 5) | Consumo real = lo que salió por pedidos menos lo reintegrado. Aparte: mermas, entradas y ajustes. Se valora con el costo actual del insumo (las entradas, con su propio costo). |
+| RF36 Ocupación de mesas | `pedidos` de mesa, `facturas`, `mesas`, `reservas` | El sistema solo guarda el estado **actual** de la mesa, así que la ocupación se deriva del tiempo de los pedidos: desde que se toma hasta que se paga (o se entrega si no hay pago). |
+| RF37 Indicadores financieros | `facturas`, `pagos`, `movimientos_inventario`, `pedidos` | Ventas, ticket promedio, descuentos, impuestos, propinas, costo de insumos, mermas y margen bruto, con variación contra el periodo anterior de igual duración. |
+
+- **Ventas netas** = total de la factura − impuesto − propina. **Margen bruto** = ventas netas − costo de insumos consumidos (estimado: usa el costo unitario actual de cada insumo).
+- **Ocupación**: % de ocupación = horas ocupadas / (días del periodo × horas de operación). Las visitas que se cruzan en una mesa se unen; un pedido sin cerrar cuenta como máximo `SIAR_OCUPACION_MAX_HORAS` (6 h); los días que aún no llegan no cuentan como disponibles; y solo se consideran las mesas activas. El mapa de calor es el % promedio de mesas ocupadas por día de la semana y hora. Configurable en `config/siar.php → reportes` (`SIAR_HORAS_OPERACION`, por defecto 12 h).
+- **Periodo**: sin fechas, los últimos 30 días; máximo `SIAR_REPORTES_MAXIMO_DIAS` (366).
+- **Permisos**: `ver_reportes` (Administrador) abre todos los reportes; `ver_reportes_operativos` (Administrador y Cajero) abre solo consumo de inventario y ocupación de mesas. La migración los asigna también en bases ya instaladas, sin quitar permisos existentes.

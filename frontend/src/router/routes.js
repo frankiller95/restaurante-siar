@@ -110,6 +110,14 @@ const routes = [
         meta: { permiso: 'gestionar_inventario' },
       },
 
+      // Módulo 7: Reportes (cada reporte valida su permiso dentro de la página y en la API)
+      {
+        path: 'reportes',
+        name: 'reportes',
+        component: () => import('@/pages/reportes/ReportesPage.vue'),
+        meta: { permisos: ['ver_reportes', 'ver_reportes_operativos'] },
+      },
+
       // Módulo 6: Facturación
       {
         path: 'facturacion',

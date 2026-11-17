@@ -20,6 +20,7 @@ enum CodigoPermiso: string
     case FACTURAR = 'facturar';
     case GESTIONAR_INVENTARIO = 'gestionar_inventario';
     case VER_REPORTES = 'ver_reportes';
+    case VER_REPORTES_OPERATIVOS = 'ver_reportes_operativos';
 
     public function nombre(): string
     {
@@ -35,7 +36,8 @@ enum CodigoPermiso: string
             self::PREPARAR_PEDIDOS => 'Preparar pedidos (cocina)',
             self::FACTURAR => 'Facturar y registrar pagos',
             self::GESTIONAR_INVENTARIO => 'Gestionar inventario',
-            self::VER_REPORTES => 'Ver reportes y dashboard',
+            self::VER_REPORTES => 'Ver reportes gerenciales',
+            self::VER_REPORTES_OPERATIVOS => 'Ver reportes operativos',
         };
     }
 
@@ -53,7 +55,8 @@ enum CodigoPermiso: string
             self::PREPARAR_PEDIDOS => 'Ver y actualizar el estado de los pedidos en cocina.',
             self::FACTURAR => 'Generar facturas, aplicar descuentos y registrar pagos.',
             self::GESTIONAR_INVENTARIO => 'Controlar existencias e insumos.',
-            self::VER_REPORTES => 'Consultar reportes gerenciales e indicadores.',
+            self::VER_REPORTES => 'Consultar todos los reportes: ventas, productos más vendidos, inventario, ocupación de mesas e indicadores financieros.',
+            self::VER_REPORTES_OPERATIVOS => 'Consultar solo los reportes operativos: consumo de inventario y ocupación de mesas.',
         };
     }
 }

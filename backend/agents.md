@@ -1,1 +1,2 @@
 1. No hagas simulaciones y pruebas que no te haya solicitado si debes hacer pruebas en producción o en el navegador pidemeslas siempre a mi.
+2. No realices test de inserción de datos o actualizaciones, dejame a mi los test, explicame el proceso en la respuesta.

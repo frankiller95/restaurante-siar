@@ -23,7 +23,7 @@ class RolSeeder extends Seeder
             ],
             Rol::CAJERO => [
                 'descripcion' => 'Factura pedidos y registra pagos.',
-                'permisos' => [P::CONSULTAR_MENU->value, P::CONSULTAR_MESAS->value, P::GESTIONAR_RESERVAS->value, P::FACTURAR->value],
+                'permisos' => [P::CONSULTAR_MENU->value, P::CONSULTAR_MESAS->value, P::GESTIONAR_RESERVAS->value, P::FACTURAR->value, P::VER_REPORTES_OPERATIVOS->value],
             ],
             Rol::MESERO => [
                 'descripcion' => 'Atiende mesas y toma pedidos.',

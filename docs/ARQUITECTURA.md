@@ -145,6 +145,12 @@ stateDiagram-v2
     Pendiente --> Anulada : Anular (sin pagos)
 ```
 
+### Módulo 7 (Reportes)
+- **Repository** de solo lectura (`ReporteRepositoryInterface`): agrega con SQL y entrega filas planas; `ReporteService` arma cada reporte.
+- **Value Object** `RangoFechas` (periodo en la zona horaria del restaurante, convertido a UTC para consultar) y enum `AgrupacionPeriodo` (cada caso sabe cuándo empieza su periodo, cuál sigue y cómo se llama, sin un `if` por agrupación).
+- `CalculadoraOcupacion` es una clase pura (sin base de datos), por lo que se prueba con casos exactos.
+- Frontend: Chart.js con `vue-chartjs` (solo las piezas usadas, cargado únicamente al abrir Reportes) y una tabla acompañando a cada gráfico; la exportación a CSV usa la utilidad `exportFile` de Quasar.
+
 El Módulo 6 también reutiliza **Repository** (`FacturaRepositoryInterface`), **DTO** (`FacturaDTO`, `PagoDTO`) y **Observer** (cada paso publica `EventoAuditable` para la bitácora, RNF06).
 
 ---

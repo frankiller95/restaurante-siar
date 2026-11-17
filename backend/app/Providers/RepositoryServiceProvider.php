@@ -10,6 +10,7 @@ use App\Contracts\Repositories\MesaRepositoryInterface;
 use App\Contracts\Repositories\PedidoRepositoryInterface;
 use App\Contracts\Repositories\PermisoRepositoryInterface;
 use App\Contracts\Repositories\ProductoRepositoryInterface;
+use App\Contracts\Repositories\ReporteRepositoryInterface;
 use App\Contracts\Repositories\ReservaRepositoryInterface;
 use App\Contracts\Repositories\RolRepositoryInterface;
 use App\Contracts\Repositories\UsuarioRepositoryInterface;
@@ -22,6 +23,7 @@ use App\Repositories\Eloquent\MesaRepository;
 use App\Repositories\Eloquent\PedidoRepository;
 use App\Repositories\Eloquent\PermisoRepository;
 use App\Repositories\Eloquent\ProductoRepository;
+use App\Repositories\Eloquent\ReporteRepository;
 use App\Repositories\Eloquent\ReservaRepository;
 use App\Repositories\Eloquent\RolRepository;
 use App\Repositories\Eloquent\UsuarioRepository;
@@ -50,6 +52,7 @@ class RepositoryServiceProvider extends ServiceProvider
         PedidoRepositoryInterface::class => PedidoRepository::class,
         InsumoRepositoryInterface::class => InsumoRepository::class,
         FacturaRepositoryInterface::class => FacturaRepository::class,
+        ReporteRepositoryInterface::class => ReporteRepository::class,
         ServicioCorreo::class => ServicioCorreoLaravel::class,
     ];
 }

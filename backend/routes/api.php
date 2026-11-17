@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PermisoController;
 use App\Http\Controllers\Api\PromocionController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\RecetaController;
+use App\Http\Controllers\Api\ReporteController;
 use App\Http\Controllers\Api\ReservaController;
 use App\Http\Controllers\Api\RolController;
 use App\Http\Controllers\Api\UsuarioController;
@@ -187,6 +188,22 @@ Route::middleware(['auth:sanctum', 'permiso:facturar'])->prefix('facturas')->gro
     Route::post('{factura}/pagos', [FacturaController::class, 'pagar']);
     Route::patch('{factura}/anular', [FacturaController::class, 'anular']);
     Route::post('{factura}/comprobante', [FacturaController::class, 'comprobante']);
+});
+
+// --- Módulo 7: reportes (RF33 a RF37) ----------------------------------------
+Route::middleware('auth:sanctum')->prefix('reportes')->group(function () {
+    // Gerenciales: solo quien tiene "ver_reportes" (Administrador).
+    Route::middleware('permiso:ver_reportes')->group(function () {
+        Route::get('ventas', [ReporteController::class, 'ventas']);
+        Route::get('productos-mas-vendidos', [ReporteController::class, 'productos']);
+        Route::get('indicadores-financieros', [ReporteController::class, 'indicadores']);
+    });
+
+    // Operativos: también el Cajero ("ver_reportes_operativos").
+    Route::middleware('permiso:ver_reportes,ver_reportes_operativos')->group(function () {
+        Route::get('consumo-inventario', [ReporteController::class, 'inventario']);
+        Route::get('ocupacion-mesas', [ReporteController::class, 'ocupacion']);
+    });
 });
 
 // RF38: recetas (inventario o administración del menú).

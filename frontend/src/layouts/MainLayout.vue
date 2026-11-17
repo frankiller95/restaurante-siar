@@ -155,6 +155,12 @@ const menu = [
     ],
   },
   {
+    titulo: 'Reportes',
+    opciones: [
+      { titulo: 'Reportes', icono: 'insights', to: { name: 'reportes' }, permisos: ['ver_reportes', 'ver_reportes_operativos'] },
+    ],
+  },
+  {
     titulo: 'Operación',
     opciones: [
       {
