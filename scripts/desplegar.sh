@@ -42,9 +42,10 @@ verificar_entorno() {
 # Respaldo completo de la base con mysqldump (la contraseña va por variable de
 # entorno, no en la línea de comandos). Deja la ruta en $ARCHIVO_RESPALDO.
 respaldar_base() {
-  local -a datos
-  mapfile -t datos < <(estado_bd conexion)
-  local driver="${datos[0]:-}" host="${datos[1]:-}" puerto="${datos[2]:-}" base="${datos[3]:-}" usuario="${datos[4]:-}" clave="${datos[5]:-}"
+  # Sin "mapfile < <(...)": esa sintaxis usa /dev/fd, que Hostinger no permite.
+  local conexion driver="" host="" puerto="" base="" usuario="" clave=""
+  conexion="$(estado_bd conexion)" || error "No se pudieron leer los datos de conexión de la base; no se migra."
+  { IFS= read -r driver; IFS= read -r host; IFS= read -r puerto; IFS= read -r base; IFS= read -r usuario; IFS= read -r clave || true; } <<<"$conexion"
 
   if [[ "$driver" != "mysql" && "$driver" != "mariadb" ]]; then
     error "El respaldo automático solo soporta MySQL/MariaDB (la conexión es \"$driver\")."
